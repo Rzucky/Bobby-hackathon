@@ -5,7 +5,7 @@ const API_URL_KUKAC = "https://hackathon.kojikukac.com/api/ParkingSpot"
 const prisma = new PrismaClient();
 
 router.get("/", (req, res) => {
-    res.send(global.parkingSpots)
+    res.send(Object.values(global.parkingSpots))
 })
 
 router.get("/unoccupied", (req, res) => {
