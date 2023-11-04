@@ -4,7 +4,17 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_DB_URL")
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  name          String?
+  password      String
+  type          UserType
+  licencePlate  String
+  reservedSpots Spot[]   @relation("UserReservedSpots")
 }
 
 model Spot {
@@ -12,28 +22,12 @@ model Spot {
   latitude          String
   longitude         String
   occupied          Boolean   @default(false)
-  occupiedTimestamp DateTime
+  occupiedTimestamp DateTime?
   reserved_user_id  Int?
   difficult         Boolean   @default(false)
   type              SpotTypes @default(Regular)
   parkingSpotZone   Zones?    @default(Zone1)
-  User              User?     @relation(fields: [reserved_user_id], references: [id])
-}
-
-model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  name         String?
-  password     String
-  type         UserType
-  licencePlate String
-  Spot         Spot[]
-}
-
-enum SpotTypes {
-  Regular
-  Handicapped
-  ECharging
+  reserved_by       User?     @relation("UserReservedSpots", fields: [reserved_user_id], references: [id])
 }
 
 enum UserType {
@@ -47,4 +41,10 @@ enum Zones {
   Zone2
   Zone3
   Special
+}
+
+enum SpotTypes {
+  Regular
+  Handicapped
+  ECharging
 }

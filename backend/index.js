@@ -1,16 +1,18 @@
 const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs");
-const {createServer} = require('http');
-const {Server} = require('socket.io');
-const express = require('express');
+// const {createServer} = require('http');
+// const {Server} = require('socket.io');
+
+require("dotenv").config();
 
 const {PrismaClient} = require('../node_modules/@prisma/client');
-const authenticationRoutes = require('./routes/authentication');
+
 const parkingSpotsRoutes = require('./routes/parkingSpots');
+
 const prisma = new PrismaClient();
 const bodyParser = require('body-parser')
 
-require("dotenv").config();
 const cors = require("cors");
+const Routing = require("./routes/Routing");
 /*
     Explanation:
     - EventHubConsumerClient is used to consume events from an Event Hub.
@@ -43,7 +45,7 @@ const subscription = consumerClient.subscribe({
             for (const event of events) {
                 console.table(event.body)
                 global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
-                io.emit('ps', event.body);
+                // io.emit('ps', event.body);
             }
 
             await context.updateCheckpoint(events[events.length - 1]);
@@ -57,60 +59,40 @@ const subscription = consumerClient.subscribe({
 );
 
 console.log("subscription setup done", subscription.isRunning);
-// Initialize the express application
-const app = express();
-app.use(bodyParser.urlencoded({extended: false}))
-app.use(bodyParser.json())
-app.use(cors({
-    origin: '*',
-}));
 
-const server = createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: '*',
-    }
-});
-// Define a route for GET requests to '/'
-app.get('/', (req, res) => {
-    // Send 'Hello World' response
-    res.send("Hello World");
-});
+// const server = createServer(app);
+// const io = new Server(server, {
+//     cors: {
+//         origin: '*',
+//     }
+// });
+
+    
+// io.on('connection', (socket) => {
+//     console.log('a user connected');
+// });
 
 
-app.get('/test_insert', async (req, res) => {
-    const user = await prisma.user.create({
-        data: {
-            type: 'user',
-            name: 'Bobby',
-            email: 'bobby@tablice.drop'
-        },
-    })
-    console.log(user)
-    try {
-        await prisma.$disconnect()
-    } catch (error) {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    }
-})
-app.use('/api/auth', authenticationRoutes);
-app.use('/api/parkingSpots', parkingSpotsRoutes);
+class Start {
+    constructor() {
+        global.config = process.env
+        // global.logger = new Logger();
+        const routing = new Routing();
+        routing.start()
 
-io.on('connection', (socket) => {
-    console.log('a user connected');
-});
+      }
 
-server.listen(3000, () => {
-    console.log('server running at http://localhost:3000');
-});
 
-let parkingSpots = fetch('https://hackathon.kojikukac.com/api/ParkingSpot/getAll', {
-    method: 'GET', // The method is optional when making a GET request as GET is the default.
+}
+
+new Start();
+
+
+let parkingSpots = fetch(global.config.PARKING_API + '/api/ParkingSpot/getAll', {
+    method: 'GET',
     headers: {
         'accept': 'application/json',
-        'Api-Key': 'c901d7ef-ddcf-4f0f-a47c-fbb4c3e66445'
+        'Api-Key': global.config.API_KEY
     }
 })
     .then(response => {
