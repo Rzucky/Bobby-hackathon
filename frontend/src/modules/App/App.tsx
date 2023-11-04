@@ -4,6 +4,7 @@ import NotFound from './components/NotFound'
 import { ThemeProvider } from 'styled-components'
 import { CustomTheme, THEME } from '../../styles'
 import { Wrapper } from './styles'
+import Login from '../Login'
 
 declare module 'styled-components' {
   export interface DefaultTheme extends CustomTheme {}
@@ -16,6 +17,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

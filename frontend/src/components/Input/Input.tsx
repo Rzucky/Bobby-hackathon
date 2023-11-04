@@ -15,7 +15,7 @@ export default function Input({
   onChange = () => {},
   ...props
 }: React.CSSProperties &
-  React.HTMLAttributes<HTMLInputElement> & {
+  Omit<React.HTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> & {
     type?: React.HTMLInputTypeAttribute
     value?: string
     onChange?: (value: string) => void

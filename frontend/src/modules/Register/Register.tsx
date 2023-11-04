@@ -84,7 +84,7 @@ function Register() {
         </Flex>
       </Flex>
       <Flex justifyContent="center" marginTop="16px">
-        <Button onClick={submitForm}>Submit</Button>
+        <Button onClick={submitForm}>Register</Button>
       </Flex>
     </Flex>
   )
