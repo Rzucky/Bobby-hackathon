@@ -29,6 +29,7 @@ model Spot {
   type              SpotTypes @default(Regular)
   parkingSpotZone   Zones?    @default(Zone1)
   reserved_by       User?     @relation("UserReservedSpots", fields: [reserved_user_id], references: [id])
+  @@index([id], type: Hash)
 }
 
 model Alert {

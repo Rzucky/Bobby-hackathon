@@ -24,7 +24,21 @@ class EventHub {
 
     }
     
-    startSubscription(consumerClient) {
+        
+    waitForVariable() {
+        return new Promise((resolve) => {
+        // Check every 100 milliseconds
+        const intervalId = setInterval(() => {
+            if (global.readyAfterStartup) {
+            clearInterval(intervalId); // Stop checking
+            resolve(); // Resolve the promise
+            }
+        }, 1000);
+        });
+    }
+
+    async startSubscription(consumerClient) {
+        await this.waitForVariable();
         const subscription = consumerClient.subscribe({
                 /*
                     Explanation:
@@ -97,7 +111,7 @@ class EventHub {
                         let ISOformat = now.toISOString();
 
                         let type_chance = Math.random();
-                        let type = undefined;
+                        let type = '';                  
                         switch (type_chance){
                             case type_chance < 0.1:
                                 type = "Handicapped";
@@ -111,8 +125,8 @@ class EventHub {
 
                         let data_object = {
                             id: event.body.Id,
-                            latitude: global.parkingSpots[event.body.Id].latitude,
-                            longitude: global.parkingSpots[event.body.Id].longitude,
+                            latitude: String(global.parkingSpots[event.body.Id].latitude),
+                            longitude: String(global.parkingSpots[event.body.Id].longitude),
                             occupied: event.body.IsOccupied ?? false,
                             occupiedTimestamp: ISOformat,
                             difficult: Math.random() < 0.2,
@@ -130,7 +144,7 @@ class EventHub {
                             create: data_object,
                         })
 
-                        io.emit('ps', data_object);
+                        this.io.emit('ps', data_object);
                     }
         
                     await context.updateCheckpoint(events[events.length - 1]);
@@ -153,6 +167,7 @@ class EventHub {
                 origin: '*',
             }
         });
+        this.io = io
         
         io.on('connection', (socket) => {
             console.log('a user connected');
