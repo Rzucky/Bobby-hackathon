@@ -1,10 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const {prisma} = require("../index");
+const {PrismaClient} = require('../../node_modules/@prisma/client');
+const prisma = new PrismaClient();
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
-    const {email, password, name, type} = req.body;
+    const {email, password, name, type, licencePlate} = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 8);
 
@@ -14,12 +15,14 @@ router.post('/register', async (req, res) => {
                 type,
                 email,
                 password: hashedPassword,
-                name
+                name,
+                licencePlate
             },
         });
 
         res.status(201).send({message: 'User created successfully', user});
     } catch (error) {
+        console.log(error)
         if (error.code === 'P2002') {
             return res.status(400).send({message: 'Email already exists.'});
         }
