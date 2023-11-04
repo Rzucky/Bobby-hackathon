@@ -7,16 +7,6 @@ datasource db {
   url      = env("POSTGRES_DB_URL")
 }
 
-model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  name          String?
-  password      String
-  type          UserType
-  licencePlate  String
-  reservedSpots Spot[]   @relation("UserReservedSpots")
-}
-
 model Spot {
   id                String    @id
   latitude          String
@@ -27,13 +17,17 @@ model Spot {
   difficult         Boolean   @default(false)
   type              SpotTypes @default(Regular)
   parkingSpotZone   Zones?    @default(Zone1)
-  reserved_by       User?     @relation("UserReservedSpots", fields: [reserved_user_id], references: [id])
+  User              User?     @relation(fields: [reserved_user_id], references: [id])
 }
 
-enum UserType {
-  admin
-  user
-  towTruck
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  password     String
+  type         UserType
+  licencePlate String
+  Spot         Spot[]
 }
 
 enum SpotTypes {
@@ -42,36 +36,15 @@ enum SpotTypes {
   ECharging
 }
 
+enum UserType {
+  admin
+  user
+  towTruck
+}
+
 enum Zones {
   Zone1
   Zone2
   Zone3
   Special
 }
-
-model User {
-  id            Int     @id @default(autoincrement())
-  type          String
-  email         String  @unique
-  name          String?
-  password      String
-  reservedSpots Spot[]  @relation("UserReservedSpots")
-}
-
-model Spot {
-  id                String   @id
-  type              String
-  latitude          String
-  longitude         String
-  parkingSpotZone   String?
-  occupied          Boolean  @default(false)
-  occupiedTimestamp DateTime
-  reserved_by       User?    @relation(fields: [reserved_user_id], references: [id], name: "UserReservedSpots")
-  reserved_user_id  Int?
-}
-
-
-generator client {
-  provider = "prisma-client-js"
-}
-
