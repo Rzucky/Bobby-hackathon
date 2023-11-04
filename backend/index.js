@@ -35,7 +35,7 @@ const subscription = consumerClient.subscribe({
             - at end of processEvents, you need to update the checkpoint/offset to the latest event (to prevent processing past events).
          */
         processEvents: async (events, context) => {
-            console.log(`Received events: ${events.length}`);
+            // console.log(`Received events: ${events.length}`);
 
             if (events.length === 0) {
                 console.log(`No events received within wait time. Waiting for next interval`);
@@ -43,7 +43,7 @@ const subscription = consumerClient.subscribe({
             }
 
             for (const event of events) {
-                console.table(event.body)
+                // console.table(event.body)
                 global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
                 let time = event.body.Time
                 let hours = time.split(":")[0]

@@ -3,18 +3,12 @@ const {PrismaClient} = require("@prisma/client");
 const router = express.Router();
 const prisma = new PrismaClient()
 router.post("/", (req, res) => {
-    let {licensePlate, latitude, longitude, message} = req.body
-
-    if (licensePlate === undefined || latitude === undefined || longitude === undefined || message === undefined) {
-        res.status(400).send({message: 'Invalid request, missing parameters.'});
-        return;
-    }
+    let {licensePlate, parkingSpotId, message} = req.body
 
     prisma.alert.create({
         data: {
             licensePlate,
-            latitude,
-            longitude,
+            parkingSpotId,
             message
         }
     }).then(alert => {
