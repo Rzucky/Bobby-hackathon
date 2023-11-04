@@ -46,13 +46,31 @@ export default function Drawer({
   height = 400,
   initialHeight = 50,
   disabled,
-}: React.PropsWithChildren<{ height?: number; initialHeight?: number; disabled?: boolean }>) {
+  ...props
+}: React.PropsWithChildren<{
+  height?: number
+  initialHeight?: number
+  disabled?: boolean
+  isOpen?: boolean
+  setIsOpen?: (open: boolean) => void
+}>) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const toggleDrawer = () => {
+    if (typeof props.setIsOpen === 'undefined') {
+      setIsOpen(_open => !_open)
+      return
+    }
+
+    props.setIsOpen(!props.isOpen)
+  }
+
+  const _isOpen = typeof props.isOpen === 'undefined' ? isOpen : props.isOpen
 
   return (
     <StyledDrawer>
-      <DrawerHandle onClick={() => setIsOpen(_open => !_open && !!disabled)} />
-      <DrawerContent isOpen={isOpen} drawerHeight={height} initialHeight={initialHeight} padding="8px 16px">
+      <DrawerHandle onClick={toggleDrawer} />
+      <DrawerContent isOpen={_isOpen} drawerHeight={height} initialHeight={initialHeight} padding="8px 16px">
         {children}
       </DrawerContent>
     </StyledDrawer>
