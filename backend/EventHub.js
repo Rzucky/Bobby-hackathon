@@ -1,7 +1,9 @@
 const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs");
 const {createServer} = require('http');
 const {Server} = require('socket.io');
-
+const {PrismaClient} = require("@prisma/client");
+const {parseTime, sendReservationRequest, Time} = require("./util");
+const prisma = new PrismaClient()
 /*
     Explanation:
     - EventHubConsumerClient is used to consume events from an Event Hub.
@@ -38,28 +40,64 @@ class EventHub {
                         console.log(`No events received within wait time. Waiting for next interval`);
                         return;
                     }
+
+                    let reservations = await prisma.reservation.findMany({
+                        where: {
+                            parkingSpotId: {
+                                in: events.map(event => event.body.Id)
+                            }
+                        }
+                    })
+
+                    reservations = reservations.reduce((acc, spot) => {
+                        acc[spot.parkingSpotId] = spot;
+                        return acc;
+                    }, {});
                     
                     for (const event of events) {
-                        console.table(event.body)
+                        //if got freed and we have that id in reservations
+                        if ((!event.body.IsOccupied) && event.body.Id in reservations) {
+                            console.log("ReReservation for id" + event.body.Id)
+                            let reservation = reservations[event.body.Id]
+                            let now = parseTime(event.body.Time)
+                            let end = parseTime(reservation.end)
+                            if (now >= end) {
+                                //delete reservation
+                                await prisma.reservation.delete({
+                                    where: {
+                                        id: reservation.id
+                                    }
+                                })
+                            }
+                            sendReservationRequest(event.body.Id, parseInt(event.body.Time.split(":")[0]) + 1, 0).then(response => {
+                                console.log("Extended reservation for id" + event.body.Id)
+                            })
+                                .catch(err => {
+                                    console.log(err)
+                                })
+                        }
+
                         global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
                         let time = event.body.Time
-                        let hours = time.split(":")[0]
-                        let minutes = time.split(":")[1]
-                        
-                        global.hours = hours
-                        global.minutes = minutes
-                        
+                        let hours = parseInt(time.split(":")[0])
+                        let minutes = parseInt(time.split(":")[1])
+                        if (global.time === undefined || global.time.hours !== hours || global.time.minutes !== minutes) {
+                            global.time = new Time(hours, minutes)
+                            console.log(global.time.getTime())
+                        }
+
                         let now = new Date();
                         // Extract hours and minutes from the time string and pad them if needed
                         let [hrs, mnts] = time.split(':').map(component => component.padStart(2, '0'));
-                    
+
                         // Set the hours and minutes to the current date
                         now.setHours(parseInt(hrs, 10), parseInt(mnts, 10), 0, 0);
-                    
+
                         // Convert to ISO 8601 format
                         let ISOformat = now.toISOString();
 
-                        let type_chance = Math.random();                  
+                        let type_chance = Math.random();
+                        let type = undefined;
                         switch (type_chance){
                             case type_chance < 0.1:
                                 type = "Handicapped";
@@ -82,11 +120,9 @@ class EventHub {
                             parkingSpotZone: global.parkingSpots[event.body.Id].parkingSpotZone,
                         }
 
-                        
-                        console.log(event.body)
                         const upsertSpot = await prisma.spot.upsert({
                             where: {
-                            id: event.body.Id,
+                                id: event.body.Id,
                             },
                             update: {
                                 occupied: event.body.IsOccupied,
@@ -94,7 +130,7 @@ class EventHub {
                             create: data_object,
                         })
 
-                        io.emit('ps', data_object);
+                        // io.emit('ps', data_object);
                     }
         
                     await context.updateCheckpoint(events[events.length - 1]);
