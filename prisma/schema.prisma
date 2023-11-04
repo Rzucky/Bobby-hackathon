@@ -47,7 +47,6 @@ enum Zones {
   Zone2
   Zone3
   Special
-  url      = env("POSTGRES_DB_URL")
 }
 
 model User {
