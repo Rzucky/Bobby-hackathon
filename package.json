@@ -27,6 +27,7 @@
     "io": "^1.5.0",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.5.2",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.1"
   }
 }

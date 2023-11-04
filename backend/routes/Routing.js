@@ -1,6 +1,5 @@
 const {createServer} = require('http');
 const bodyParser = require('body-parser')
-const axios = require('axios');
 
 const {PrismaClient} = require("../../node_modules/@prisma/client");
 const prisma = new PrismaClient()
@@ -17,26 +16,6 @@ const authenticationRoutes = require('./authentication');
 const parkingSpotsRoutes = require('./parkingSpots');
 const alertsRoutes = require('./alerts');
 
-const AccessControl = require('accesscontrol');
-const { randomUUID } = require('crypto');
-const ac = new AccessControl();
-
-ac.grant('user')
-  .readAny('data')
-  .readOwn('profile')
-  .updateOwn('profile');
-
-ac.grant('admin')
-  .extend('user')
-  .create('spot')
-  .deleteAny('spot')
-  .readAny('data')
-  .readAny('reports')
-  .updateAny('profile')
-  .createAny('profile')
-  .createAny('threat');
-
-
 class Routing {
     constructor() {
         const app = express();
@@ -51,8 +30,9 @@ class Routing {
         app.use(bodyParser.urlencoded({ extended: false }))
         app.use(bodyParser.json())
         const server = createServer(app);
-
+        
         this.app = app
+        global.app = app
 
         // server.listen(3000, () => {
         //     console.log('server running at http://localhost:3000');
@@ -78,105 +58,15 @@ class Routing {
         }
     }
 
-    async createSpot(req, res) {
-        const {latitude, longitude, parkingSpotZone} = req.body;
-        console.log(req.user)
-        const { role } = req.user;
-        console.log(role)
-        if (ac.can(role).create('spot').granted) {
-            try {
-
-
-                const resp = await axios.post(global.config.PARKING_API + '/api/ParkingSpot',
-                {
-                    latitude,
-                    longitude,
-                    parkingSpotZone
-                },
-                {
-                    headers: {
-                        'Api-Key': global.config.API_KEY
-                    }
-                }
-                )
-                console.log(resp)
-
-                if (resp.status != 200) {
-                    throw new Error(resp)
-                }
-
-                const spot = await prisma.spot.create({
-                    data: {
-                        latitude,
-                        longitude,
-                        parkingSpotZone,
-                        id: resp.data.id
-                    }
-                })
-
-                return res.status(201).send({error: false, message: 'Spot created successfully'});
-            } catch (error) {
-                console.log(error);
-                return res.status(201).send({ error: true, data: {}, notice: 'Internal error' });
-            }
-        }
-        return res.status(403).json({ message: 'Forbidden' });
-    }
-
-    async deleteSpot(req, res) {
-        const {id} = req.body;
-
-        const { role } = req.user;
-        if (ac.can(role).deleteAny('spot').granted) {
-            try {
-
-                const spot = await prisma.spot.findUnique({
-                    where: {
-                      id,
-                    },
-                  })
-                if (!spot)
-                {
-                    return res.status(400).send({error: true, message:"Doesn't exist"})
-                }
-                console.log(spot)
-                // TODO cache clean
-                await prisma.spot.delete({
-                    where: {
-                        id
-                    }
-                })
-
-                const resp = await axios.delete(global.config.PARKING_API + `/api/ParkingSpot/${id}`,
-                {
-                    headers: {
-                        'Api-Key': global.config.API_KEY
-                    }
-                })
-                console.log(resp)
-
-                if (resp.status != 200) {
-                    throw new Error(resp)
-                }
-
-                return res.status(201).send({error: false, message: 'Spot deleted successfully'});
-            } catch (error) {
-                console.log(error);
-                return res.status(201).send({ error: true, data: {}, notice: 'Internal error' });
-            }
-        }
-        return res.status(403).json({ message: 'Forbidden' });
-    }
-
-
     start() {
+
         this.app.use(express.json());
         this.app.use('/api/auth', authenticationRoutes);
-        this.app.use('/api/parkingSpots', parkingSpotsRoutes);
-        this.app.use('/api/alerts',alertsRoutes)
+        this.app.use('/api/parkingSpots',this.authMiddleware,parkingSpotsRoutes);
+        this.app.use('/api/alerts',this.authMiddleware,alertsRoutes)
         // this.app.use('/test', this.authMiddleware, this.test);
-        this.app.post('/create_spot', this.authMiddleware, this.createSpot);
-        this.app.delete('/delete_spot', this.authMiddleware, this.deleteSpot);
+        // this.app.post('/create_spot', this.authMiddleware, this.createSpot);
+        // this.app.delete('/delete_spot', this.authMiddleware, this.deleteSpot);
 
         // this.app.post('/createProfile', this.authMiddleware, this.createProfile);
         // this.app.get('/users', this.authMiddleware, this.getUsers);
