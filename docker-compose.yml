@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  bobby-db:
+    image: postgres
+    container_name: bobby-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5550:5432"
+    volumes:
+      - bobby-db-data:/var/lib/postgresql/data
+
+  # bobby-backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   image: bobby-backend:1.0.0
+  #   container_name: bobby-backend
+  #   depends_on:
+  #     - bobby-db
+  #   ports:
+  #     - "5555:8080"
+
+  # bobby-frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   image: bobby-frontend:1.0.0
+  #   container_name: bobby-frontend
+  #   depends_on:
+  #     - bobby-backend
+  #   ports:
+  # - "5560:3000"
+
+volumes:
+  bobby-db-data:
