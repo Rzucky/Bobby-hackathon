@@ -15,6 +15,7 @@ const jwt = require('jsonwebtoken');
 
 const authenticationRoutes = require('./authentication');
 const parkingSpotsRoutes = require('./parkingSpots');
+const alertsRoutes = require('./alerts');
 
 const AccessControl = require('accesscontrol');
 const { randomUUID } = require('crypto');
@@ -57,7 +58,7 @@ class Routing {
         //     console.log('server running at http://localhost:3000');
         // });
     }
-    
+
 
     authMiddleware(req, res, next) {
         const token = req.headers.authorization;
@@ -65,7 +66,7 @@ class Routing {
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
-    
+
         try {
             const decoded = jwt.verify(token, global.config.HASH_KEY);
             req.user = decoded;
@@ -84,8 +85,8 @@ class Routing {
         console.log(role)
         if (ac.can(role).create('spot').granted) {
             try {
-                
-                
+
+
                 const resp = await axios.post(global.config.PARKING_API + '/api/ParkingSpot',
                 {
                     latitude,
@@ -99,7 +100,7 @@ class Routing {
                 }
                 )
                 console.log(resp)
-                
+
                 if (resp.status != 200) {
                     throw new Error(resp)
                 }
@@ -112,7 +113,7 @@ class Routing {
                         id: resp.data.id
                     }
                 })
-                
+
                 return res.status(201).send({error: false, message: 'Spot created successfully'});
             } catch (error) {
                 console.log(error);
@@ -128,7 +129,7 @@ class Routing {
         const { role } = req.user;
         if (ac.can(role).deleteAny('spot').granted) {
             try {
-                
+
                 const spot = await prisma.spot.findUnique({
                     where: {
                       id,
@@ -145,7 +146,7 @@ class Routing {
                         id
                     }
                 })
-                
+
                 const resp = await axios.delete(global.config.PARKING_API + `/api/ParkingSpot/${id}`,
                 {
                     headers: {
@@ -157,7 +158,7 @@ class Routing {
                 if (resp.status != 200) {
                     throw new Error(resp)
                 }
-                
+
                 return res.status(201).send({error: false, message: 'Spot deleted successfully'});
             } catch (error) {
                 console.log(error);
@@ -167,10 +168,12 @@ class Routing {
         return res.status(403).json({ message: 'Forbidden' });
     }
 
-    
+
     start() {
         this.app.use(express.json());
         this.app.use('/api/auth', authenticationRoutes);
+        this.app.use('/api/parkingSpots', parkingSpotsRoutes);
+        this.app.use('/api/alerts',alertsRoutes)
         // this.app.use('/test', this.authMiddleware, this.test);
         this.app.post('/create_spot', this.authMiddleware, this.createSpot);
         this.app.delete('/delete_spot', this.authMiddleware, this.deleteSpot);
@@ -185,7 +188,7 @@ class Routing {
         // this.app.get('/reports', this.authMiddleware, this.getReport);
         // this.app.get('/devcode/:username', this.devcode);
         // this.app.post('/delete', this.authMiddleware, this.deleteProfile);
-    
+
         this.app.listen(global.config.PORT, () => {
             // eslint-disable-next-line no-console
             console.log('Routing server started on port' + global.config.PORT);
@@ -193,6 +196,6 @@ class Routing {
     }
 
 
-}  
+}
 
 module.exports = Routing

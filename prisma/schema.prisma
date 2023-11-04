@@ -13,7 +13,7 @@ model User {
   name          String?
   password      String
   type          UserType
-  licencePlate  String
+  licencePlate  String   @unique
   reservedSpots Spot[]   @relation("UserReservedSpots")
 }
 
@@ -28,6 +28,15 @@ model Spot {
   type              SpotTypes @default(Regular)
   parkingSpotZone   Zones?    @default(Zone1)
   reserved_by       User?     @relation("UserReservedSpots", fields: [reserved_user_id], references: [id])
+  Alert             Alert[]
+}
+
+model Alert {
+  id            Int    @id @default(autoincrement())
+  licencePlate  String
+  parkingSpotId String
+  parkingSpot   Spot   @relation(fields: [parkingSpotId], references: [id])
+  message       String
 }
 
 enum UserType {
