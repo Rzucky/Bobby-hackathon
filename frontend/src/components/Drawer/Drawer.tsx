@@ -57,6 +57,8 @@ export default function Drawer({
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleDrawer = () => {
+    if (!!disabled) return
+
     if (typeof props.setIsOpen === 'undefined') {
       setIsOpen(_open => !_open)
       return

@@ -1,27 +1,13 @@
 import styled from 'styled-components'
 import Drawer from '../../components/Drawer'
 import Flex from '../../components/Flex'
-import Box from '../../components/Box'
-import { TowTruckIcon, LocationIcon, MoreIcon } from '../../Icons'
+import { TowTruckIcon, LocationIcon, MoreIcon, ProfileIcon, FilterIcon } from '../../Icons'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { CircleButton } from '../../components/Button'
 
 const Container = styled(Flex)`
   background-color: ${p => p.theme.accent};
-`
-
-const CircleButton = styled(Box)`
-  border-radius: 50%;
-  background-color: ${p => p.theme.lightPrimary};
-  padding: 16px;
-
-  transition: all ease 50ms;
-
-  &:active {
-    transform: translate(2px, 2px);
-
-    background-color: ${p => `${p.theme.lightPrimary}aa`};
-  }
 `
 
 export default function Home() {
@@ -76,14 +62,14 @@ export default function Home() {
           <Flex>
             <Flex flex={1} flexDirection="column" alignItems="center">
               <CircleButton width={48} height={48} marginBottom="4px" onClick={handleProfile}>
-                <LocationIcon />
+                <ProfileIcon />
               </CircleButton>
               <p>Profile</p>
             </Flex>
 
             <Flex flex={1} flexDirection="column" alignItems="center">
               <CircleButton width={48} height={48} marginBottom="4px" onClick={handleNearestParking}>
-                <LocationIcon />
+                <FilterIcon />
               </CircleButton>
               <p>Filters</p>
             </Flex>

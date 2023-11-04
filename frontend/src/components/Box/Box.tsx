@@ -3,7 +3,7 @@ import styled from 'styled-components'
 
 const StyledBox = styled.div``
 
-function Flex({
+function Box({
   children,
   className,
   onClick,
@@ -18,4 +18,4 @@ function Flex({
   )
 }
 
-export default Flex
+export default Box
