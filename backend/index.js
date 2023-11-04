@@ -3,9 +3,10 @@ const {createServer} = require('http');
 const {Server} = require('socket.io');
 const express = require('express');
 
-const {PrismaClient} = require('@prisma/client');
+const {PrismaClient} = require('../node_modules/@prisma/client');
 const authenticationRoutes = require('./routes/authentication');
 const prisma = new PrismaClient();
+const bodyParser = require('body-parser')
 
 require("dotenv").config();
 const cors = require("cors");
@@ -57,6 +58,8 @@ const subscription = consumerClient.subscribe({
 console.log("subscription setup done", subscription.isRunning);
 // Initialize the express application
 const app = express();
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 app.use(cors({
     origin: '*',
 }));
@@ -91,7 +94,6 @@ app.get('/test_insert', async (req, res) => {
         process.exit(1)
     }
 })
-
 app.use('/api/auth', authenticationRoutes);
 
 io.on('connection', (socket) => {
