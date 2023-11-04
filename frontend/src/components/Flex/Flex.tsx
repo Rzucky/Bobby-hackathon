@@ -5,8 +5,16 @@ const StyledFlex = styled.div`
   display: flex;
 `
 
-function Flex({ children, ...styles }: React.PropsWithChildren<React.CSSProperties>) {
-  return <StyledFlex style={styles}>{children}</StyledFlex>
+function Flex({
+  children,
+  className,
+  ...styles
+}: React.PropsWithChildren<React.CSSProperties & { className?: string }>) {
+  return (
+    <StyledFlex className={className} style={styles}>
+      {children}
+    </StyledFlex>
+  )
 }
 
 export default Flex
