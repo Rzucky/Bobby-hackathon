@@ -43,14 +43,8 @@ model Reservation {
   id            Int    @id @default(autoincrement())
   userId        Int
   parkingSpotId String
-<<<<<<< HEAD
-  endHr         Int
-  endMin        Int
-  User          User   @relation(fields: [userId], references: [id])
-=======
   endTime       String
   user          User   @relation(fields: [userId], references: [id])
->>>>>>> 329738dbc5c2bbafbefcc1bdace41d9287f7c828
 }
 
 enum UserType {
@@ -65,7 +59,6 @@ enum Zones {
   Zone3
   Zone4
   Special
-  Zone4
 }
 
 enum SpotTypes {
