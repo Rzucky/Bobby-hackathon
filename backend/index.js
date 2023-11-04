@@ -3,8 +3,8 @@ const {createServer} = require('http');
 const {Server} = require('socket.io');
 const express = require('express');
 
-const { PrismaClient } = require('@prisma/client');
-
+const {PrismaClient} = require('@prisma/client');
+const authenticationRoutes = require('./routes/authentication');
 const prisma = new PrismaClient();
 
 require("dotenv").config();
@@ -19,44 +19,42 @@ const connectionString = process.env.CONNECTION_STRING;
 const eventHubName = process.env.EVENT_HUB_NAME;
 const consumerGroup = process.env.CONSUMER_GROUP;
 
-// const consumerClient = new EventHubConsumerClient(consumerGroup, connectionString, eventHubName);
+const consumerClient = new EventHubConsumerClient(consumerGroup, connectionString, eventHubName);
 
-// const subscription = consumerClient.subscribe({
+const subscription = consumerClient.subscribe({
 
-//         /*
-//             Explanation:
-//             - processEvents is called whenever the consumer client receives events.
-//             - it will always receive a batch of events, even if there is only 1 event in the batch.
-//             - events will always come in order they were sent to Event Hub by the producer(simulation).
-//             - at end of processEvents, you need to update the checkpoint/offset to the latest event (to prevent processing past events).
-//          */
-//         processEvents: async (events, context) => {
-//             console.log(`Received events: ${events.length}`);
+        /*
+            Explanation:
+            - processEvents is called whenever the consumer client receives events.
+            - it will always receive a batch of events, even if there is only 1 event in the batch.
+            - events will always come in order they were sent to Event Hub by the producer(simulation).
+            - at end of processEvents, you need to update the checkpoint/offset to the latest event (to prevent processing past events).
+         */
+        processEvents: async (events, context) => {
+            console.log(`Received events: ${events.length}`);
 
-//             if (events.length === 0) {
-//                 console.log(`No events received within wait time. Waiting for next interval`);
-//                 return;
-//             }
+            if (events.length === 0) {
+                console.log(`No events received within wait time. Waiting for next interval`);
+                return;
+            }
 
-//             for (const event of events) {
-//                 console.table(event.body)
+            for (const event of events) {
+                console.table(event.body)
 
-//                 io.emit('ps', event.body);
-//             }
+                io.emit('ps', event.body);
+            }
 
-//             await context.updateCheckpoint(events[events.length - 1]);
-//         },
+            await context.updateCheckpoint(events[events.length - 1]);
+        },
 
-//         processError: async (err, context) => {
-//             console.log(`Error : ${err}`);
-//         }
-//     },
-//     {startPosition: latestEventPosition}
-// );
+        processError: async (err, context) => {
+            console.log(`Error : ${err}`);
+        }
+    },
+    {startPosition: latestEventPosition}
+);
 
 console.log("subscription setup done", subscription.isRunning);
-// Import express
-
 // Initialize the express application
 const app = express();
 app.use(cors({
@@ -76,23 +74,25 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/test_insert', async (req, res)=> {
+app.get('/test_insert', async (req, res) => {
     const user = await prisma.user.create({
-      data: {
-        type: 'user',
-        name: 'Bobby',
-        email: 'bobby@tablice.drop'
-      },
+        data: {
+            type: 'user',
+            name: 'Bobby',
+            email: 'bobby@tablice.drop'
+        },
     })
     console.log(user)
     try {
-      await prisma.$disconnect()
+        await prisma.$disconnect()
     } catch (error) {
-      console.error(e)
-      await prisma.$disconnect()
-      process.exit(1)
+        console.error(e)
+        await prisma.$disconnect()
+        process.exit(1)
     }
-  })
+})
+
+app.use('/api/auth', authenticationRoutes);
 
 io.on('connection', (socket) => {
     console.log('a user connected');
@@ -101,3 +101,7 @@ io.on('connection', (socket) => {
 server.listen(3000, () => {
     console.log('server running at http://localhost:3000');
 });
+
+module.exports = {
+    prisma
+}

@@ -3,23 +3,27 @@ datasource db {
   url      = env("DB_URL")
 }
 
-
 model User {
-  id    Int     @id @default(autoincrement())
-  type String
-  email String  @unique
-  name  String?
+  id            Int     @id @default(autoincrement())
+  type          String
+  email         String  @unique
+  name          String?
   reservedSpots Spot[]  @relation("UserReservedSpots")
 }
 
 model Spot {
-    id   String  @id
-    type String
-    latitude   String
-    longitude   String
-    parkingSpotZone  String?
-    occupied     Boolean @default(false)
-    occupiedTimestamp    DateTime
-    reserved_by User?  @relation(fields: [reserved_user_id], references: [id], name: "UserReservedSpots")
-    reserved_user_id Int?
+  id                String   @id
+  type              String
+  latitude          String
+  longitude         String
+  parkingSpotZone   String?
+  occupied          Boolean  @default(false)
+  occupiedTimestamp DateTime
+  reserved_by       User?    @relation(fields: [reserved_user_id], references: [id], name: "UserReservedSpots")
+  reserved_user_id  Int?
+}
+
+
+generator client {
+  provider = "prisma-client-js"
 }
