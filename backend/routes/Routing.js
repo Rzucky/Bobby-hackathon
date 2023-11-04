@@ -16,6 +16,7 @@ const jwt = require('jsonwebtoken');
 const authenticationRoutes = require('./authentication');
 const parkingSpotsRoutes = require('./parkingSpots');
 const alertsRoutes = require('./alerts');
+const reservationsRoutes = require('./reservations');
 
 const AccessControl = require('accesscontrol');
 const { randomUUID } = require('crypto');
@@ -174,6 +175,7 @@ class Routing {
         this.app.use('/api/auth', authenticationRoutes);
         this.app.use('/api/parkingSpots', parkingSpotsRoutes);
         this.app.use('/api/alerts',alertsRoutes)
+        this.app.use('/api/reservations', reservationsRoutes);
         // this.app.use('/test', this.authMiddleware, this.test);
         this.app.post('/create_spot', this.authMiddleware, this.createSpot);
         this.app.delete('/delete_spot', this.authMiddleware, this.deleteSpot);

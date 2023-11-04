@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
   name          String?
   password      String
   type          UserType
-  licencePlate  String   @unique
-  reservedSpots Spot[]   @relation("UserReservedSpots")
+  licencePlate  String        @unique
+  Reservation   Reservation[]
+  reservedSpots Spot[]        @relation("UserReservedSpots")
 }
 
 model Spot {
@@ -32,9 +33,17 @@ model Spot {
 
 model Alert {
   id            Int    @id @default(autoincrement())
-  licensePlate  String
-  parkingSpotId String
   message       String
+  parkingSpotId String
+  licensePlate  String
+}
+
+model Reservation {
+  id            Int    @id @default(autoincrement())
+  userId        Int
+  parkingSpotId String
+  endTime       String
+  user          User   @relation(fields: [userId], references: [id])
 }
 
 enum UserType {
@@ -48,6 +57,7 @@ enum Zones {
   Zone2
   Zone3
   Special
+  Zone4
 }
 
 enum SpotTypes {

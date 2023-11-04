@@ -13,6 +13,7 @@ const bodyParser = require('body-parser')
 
 const cors = require("cors");
 const Routing = require("./routes/Routing");
+const {sendReservationRequest, Time, parseTime} = require("./util");
 /*
     Explanation:
     - EventHubConsumerClient is used to consume events from an Event Hub.
@@ -42,28 +43,65 @@ const subscription = consumerClient.subscribe({
                 return;
             }
 
+            let reservations = await prisma.reservation.findMany({
+                where: {
+                    parkingSpotId: {
+                        in: events.map(event => event.body.Id)
+                    }
+                }
+            })
+
+            reservations = reservations.reduce((acc, spot) => {
+                acc[spot.parkingSpotId] = spot;
+                return acc;
+            }, {});
+
             for (const event of events) {
-                // console.table(event.body)
+                //if got freed and we have that id in reservations
+                if ((!event.body.IsOccupied) && event.body.Id in reservations) {
+                    console.log("ReReservation for id" + event.body.Id)
+                    let reservation = reservations[event.body.Id]
+                    let now = parseTime(event.body.Time)
+                    let end = parseTime(reservation.end)
+                    if (now >= end) {
+                        //delete reservation
+                        await prisma.reservation.delete({
+                            where: {
+                                id: reservation.id
+                            }
+                        })
+                    }
+                    sendReservationRequest(event.body.Id, parseInt(event.body.Time.split(":")[0]) + 1, 0).then(response => {
+                        console.log("Extended reservation for id" + event.body.Id)
+                    })
+                        .catch(err => {
+                            console.log(err)
+                        })
+                }
+
                 global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
                 let time = event.body.Time
-                let hours = time.split(":")[0]
-                let minutes = time.split(":")[1]
+                let hours = parseInt(time.split(":")[0])
+                let minutes = parseInt(time.split(":")[1])
+                if (global.time === undefined || global.time.hours !== hours || global.time.minutes !== minutes) {
+                    global.time = new Time(hours, minutes)
+                    console.log(global.time.getTime())
+                }
 
-                global.hours = hours
-                global.minutes = minutes
 
                 // io.emit('ps', event.body);
+                await context.updateCheckpoint(events[events.length - 1]);
             }
-
-            await context.updateCheckpoint(events[events.length - 1]);
-        },
+        }
+        ,
 
         processError: async (err, context) => {
             console.log(`Error : ${err}`);
         }
     },
-    {startPosition: latestEventPosition}
-);
+    {
+        startPosition: latestEventPosition
+    });
 
 console.log("subscription setup done", subscription.isRunning);
 
@@ -87,7 +125,7 @@ class Start {
         const routing = new Routing();
         routing.start()
 
-      }
+    }
 
 
 }
