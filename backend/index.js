@@ -2,7 +2,7 @@ const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs
 const {createServer} = require('http');
 const {Server} = require('socket.io');
 const express = require('express');
-
+require("dotenv").config();
 const cors = require("cors");
 /*
     Explanation:
@@ -10,9 +10,9 @@ const cors = require("cors");
     - latestEventPosition is used to start receiving events from the moment of calling subscribe. (This will prevent getting past events.)
     - if you are more familiar with Kafka, you can also use Kafka client to consume events from Event Hub, but it is not recommended.
  */
-const connectionString = "Endpoint=sb://cbq-hackathon.servicebus.windows.net/;SharedAccessKeyName=n;SharedAccessKey=Zts2uk64HSb2Fr+SXp4S0THjMpp8v+zI9+AEhI29rH4=;EntityPath=team7";
-const eventHubName = "team7";
-const consumerGroup = "$Default";
+const connectionString = process.env.CONNECTION_STRING;
+const eventHubName = process.env.EVENT_HUB_NAME;
+const consumerGroup = process.env.CONSUMER_GROUP;
 
 const consumerClient = new EventHubConsumerClient(consumerGroup, connectionString, eventHubName);
 
