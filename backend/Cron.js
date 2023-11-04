@@ -9,7 +9,7 @@ class Cron {
         // global.waitingBackup = false;
         // this.startBackup();
 
-        // this.calculateStats();
+        this.calculateStats(true);
         this.insertCache()
     }
 
@@ -23,9 +23,6 @@ class Cron {
                     'Api-Key': global.config.API_KEY
                 }
             })
-
-            // console.log(parkingSpots)
-
 
             if(parkingSpots.status != 200){
 
@@ -43,72 +40,18 @@ class Cron {
 
             console.error('There has been a problem with your fetch operation:', error);
         }
-
-            // .then(response => {
-            //     if (!response.ok) {
-            //     }
-            //     return response.json();
-            // })
-            // .then(pSpots => {
-            //     global.parkingSpots = pSpots.reduce(async (acc, spot) => {
-            //         acc[spot.id] = spot;
-
-            //         let difficult = Math.random() < 0.2;
-            //         let type_chance = Math.random(); 
-            //         let type = '';              
-            //         switch (type_chance){
-            //             case type_chance < 0.1:
-            //                 type = "Handicapped";
-            //                 break;
-            //             case type_chance < 0.2:
-            //                 type = "ECharging";
-            //                 break;
-            //             default:
-            //                 type ='Regular';
-            //         }
-
-            //         let now = new Date();
-                        
-            //         let ISOformat = now.toISOString();
-
-            //         const upsertSpot = await prisma.spot.upsert({
-            //             where: {
-            //                 id: spot.id,
-            //             },
-            //             update: {
-            //                 occupied: spot.occupied,
-            //             },
-            //             create: {
-            //                 id: uuid.v4(),
-            //                 latitude: String(spot.latitude),
-            //                 longitude: String(spot.longitude),
-            //                 occupied: spot.occupied,
-            //                 occupiedTimestamp: ISOformat,
-            //                 difficult,
-            //                 type,
-            //                 parkingSpotZone: spot.parkingSpotZone,
-            //             },
-            //         })
-            //         console.log(spot.id)
-            //         return acc;
-            //     }, {});
-            // })
-            // .catch(error => {
-            //     console.error('There has been a problem with your fetch operation:', error);
-            // });
-
-            global.readyAfterStartup = true
+        global.readyAfterStartup = true
     }
 
     waitForVariable() {
         return new Promise((resolve) => {
-        // Check every 100 milliseconds
+        // Check every 1 sec
         const intervalId = setInterval(() => {
-            if (global.readyAfterStartup) {
-            clearInterval(intervalId); // Stop checking
-            resolve(); // Resolve the promise
-            }
-        }, 1000);
+                if (global.readyAfterStartup) {
+                    clearInterval(intervalId);
+                resolve();
+                }
+            }, 1000);
         });
     }
 
@@ -154,38 +97,50 @@ class Cron {
             console.log('\n\n\n\n\n\n\nFINISHED\n\n\n\n\n\n\n\n')
     }
 
-    // calculateStats() {
-    //     const zoneStats = {};
 
-    //     // Initialize counters for each zone
-    //     for (const zone of ['Zone1', 'Zone2', 'Zone3', 'Special']) {
-    //         zoneStats[zone] = { totalSpots: 0, occupiedSpots: 0 };
-    //     }
+    async calculateStats(first=false) {
+        if(first)
+        {
+            await this.waitForVariable()
+        }
+        const zoneStats = {};
 
-    //     // Count occupied and total spots per zone
-    //     spots.forEach(spot => {
-    //         if (zoneStats[spot.parkingSpotZone]) {
-    //         zoneStats[spot.parkingSpotZone].totalSpots++;
-    //         if (spot.occupied) {
-    //             zoneStats[spot.parkingSpotZone].occupiedSpots++;
-    //         }
-    //         }
-    //     });
+        // Initialize counters for each zone
+        for (const zone of ['Zone1', 'Zone2', 'Zone3', 'Zone4']) {
+            zoneStats[zone] = { totalSpots: 0, occupiedSpots: 0 };
+        }
 
-    //     // Calculate remaining spots and occupancy percentage
-    //     const results = {};
-    //     Object.keys(zoneStats).forEach(zone => {
-    //         const total = zoneStats[zone].totalSpots;
-    //         const occupied = zoneStats[zone].occupiedSpots;
-    //         const remaining = total - occupied;
-    //         const occupancyPercentage = (occupied / total) * 100;
+        // Count occupied and total spots per zone
+        for(const spot_id in global.parkingSpots) {
+            const spot = global.parkingSpots[spot_id]
+            if (zoneStats[spot.parkingSpotZone]) {
+                zoneStats[spot.parkingSpotZone].totalSpots++;
+                if (spot.occupied) {
+                    zoneStats[spot.parkingSpotZone].occupiedSpots++;
+                }
+            }
+        };
 
-    //         results[zone] = {
-    //         remainingSpots: remaining,
-    //         occupancyPercentage: occupancyPercentage.toFixed(2) // formatted to 2 decimal places
-    //         };
-    //     });
-    // }
+        // Calculate remaining spots and occupancy percentage
+        const results = {};
+        Object.keys(zoneStats).forEach(zone => {
+            const total = zoneStats[zone].totalSpots;
+            const occupied = zoneStats[zone].occupiedSpots;
+            const remaining = total - occupied;
+            const occupancyPercentage = (occupied / total) * 100;
+
+            results[zone] = {
+            remainingSpots: remaining,
+            occupancyPercentage: occupancyPercentage.toFixed(2) // formatted to 2 decimal places
+            };
+        });
+        
+        global.stats = results;
+        console.log('STATS:', global.stats)
+
+        // Reschedule the function after 5 seconds
+        setTimeout(() => this.calculateStats(), 5000);
+    }
 
     // startBackup() {
     //     setInterval(() => {

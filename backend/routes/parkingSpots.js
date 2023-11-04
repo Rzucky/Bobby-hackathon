@@ -10,6 +10,7 @@ const ac = new AccessControl();
 ac.grant('user')
   .create('reservation')
   .readOwn('profile')
+  .readOwn('reservation')
   .updateOwn('profile');
 
 ac.grant('admin')
@@ -20,6 +21,7 @@ ac.grant('admin')
   .updateAny('profile')
   .createAny('profile')
 
+global.ac = ac;
 
 router.get("/", (req, res) => {
     res.send(global.parkingSpots)
@@ -47,6 +49,7 @@ router.post("/reserve/:id", (req, res) => {
         return;
     }
 
+    const { role } = req.user;
     if (ac.can(role).create('reservation').granted) {
         fetch(global.config.PARKING_API + "/api/ParkingSpot/reserve", {
             method: 'POST', headers: {
@@ -74,7 +77,6 @@ router.post("/create", async (req, res) => {
     const {latitude, longitude, parkingSpotZone} = req.body;
     console.log(req.user)
     const { role } = req.user;
-    console.log(role)
     if (ac.can(role).create('spot').granted) {
         try {
             const resp = await axios.post(global.config.PARKING_API + '/api/ParkingSpot',

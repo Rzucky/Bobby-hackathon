@@ -12,6 +12,7 @@ model User {
   email         String        @unique
   name          String?
   password      String
+  handicapped   Boolean       @default(false)
   type          UserType
   licencePlate  String        @unique
   Reservation   Reservation[]
@@ -29,6 +30,7 @@ model Spot {
   type              SpotTypes @default(Regular)
   parkingSpotZone   Zones?    @default(Zone1)
   reserved_by       User?     @relation("UserReservedSpots", fields: [reserved_user_id], references: [id])
+
   @@index([id], type: Hash)
 }
 
@@ -47,6 +49,14 @@ model Reservation {
   user          User   @relation(fields: [userId], references: [id])
 }
 
+model ReservationHistory {
+  id            Int     @id @default(autoincrement())
+  userId        Int
+  parkingSpotId String
+  endTime       String
+  occupied      Boolean
+}
+
 enum UserType {
   admin
   user
@@ -57,8 +67,8 @@ enum Zones {
   Zone1
   Zone2
   Zone3
-  Zone4
   Special
+  Zone4
 }
 
 enum SpotTypes {

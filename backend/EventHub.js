@@ -24,7 +24,6 @@ class EventHub {
 
     }
     
-        
     waitForVariable() {
         return new Promise((resolve) => {
         // Check every 100 milliseconds
@@ -118,6 +117,9 @@ class EventHub {
                                 break;
                             case type_chance < 0.2:
                                 type = "ECharging";
+                                break;
+                            case type_chance < 0.2:
+                                type = "Family";
                                 break;
                             default:
                                 type = 'Regular'
