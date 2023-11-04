@@ -45,6 +45,13 @@ const subscription = consumerClient.subscribe({
             for (const event of events) {
                 console.table(event.body)
                 global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
+                let time = event.body.Time
+                let hours = time.split(":")[0]
+                let minutes = time.split(":")[1]
+
+                global.hours = hours
+                global.minutes = minutes
+
                 // io.emit('ps', event.body);
             }
 
@@ -67,7 +74,7 @@ console.log("subscription setup done", subscription.isRunning);
 //     }
 // });
 
-    
+
 // io.on('connection', (socket) => {
 //     console.log('a user connected');
 // });
