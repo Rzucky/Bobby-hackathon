@@ -1,121 +1,8 @@
-const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs");
-// const {createServer} = require('http');
-// const {Server} = require('socket.io');
+const Routing = require("./routes/Routing");
+const Cron = require("./Cron");
+const EventHub = require("./EventHub");
 
 require("dotenv").config();
-
-const {PrismaClient} = require('../node_modules/@prisma/client');
-
-const parkingSpotsRoutes = require('./routes/parkingSpots');
-
-const prisma = new PrismaClient();
-const bodyParser = require('body-parser')
-
-const cors = require("cors");
-const Routing = require("./routes/Routing");
-const {sendReservationRequest, Time, parseTime} = require("./util");
-/*
-    Explanation:
-    - EventHubConsumerClient is used to consume events from an Event Hub.
-    - latestEventPosition is used to start receiving events from the moment of calling subscribe. (This will prevent getting past events.)
-    - if you are more familiar with Kafka, you can also use Kafka client to consume events from Event Hub, but it is not recommended.
- */
-const connectionString = process.env.CONNECTION_STRING;
-const eventHubName = process.env.EVENT_HUB_NAME;
-const consumerGroup = process.env.CONSUMER_GROUP;
-
-const consumerClient = new EventHubConsumerClient(consumerGroup, connectionString, eventHubName);
-
-const subscription = consumerClient.subscribe({
-
-        /*
-            Explanation:
-            - processEvents is called whenever the consumer client receives events.
-            - it will always receive a batch of events, even if there is only 1 event in the batch.
-            - events will always come in order they were sent to Event Hub by the producer(simulation).
-            - at end of processEvents, you need to update the checkpoint/offset to the latest event (to prevent processing past events).
-         */
-        processEvents: async (events, context) => {
-            // console.log(`Received events: ${events.length}`);
-
-            if (events.length === 0) {
-                console.log(`No events received within wait time. Waiting for next interval`);
-                return;
-            }
-
-            let reservations = await prisma.reservation.findMany({
-                where: {
-                    parkingSpotId: {
-                        in: events.map(event => event.body.Id)
-                    }
-                }
-            })
-
-            reservations = reservations.reduce((acc, spot) => {
-                acc[spot.parkingSpotId] = spot;
-                return acc;
-            }, {});
-
-            for (const event of events) {
-                //if got freed and we have that id in reservations
-                if ((!event.body.IsOccupied) && event.body.Id in reservations) {
-                    console.log("ReReservation for id" + event.body.Id)
-                    let reservation = reservations[event.body.Id]
-                    let now = parseTime(event.body.Time)
-                    let end = parseTime(reservation.end)
-                    if (now >= end) {
-                        //delete reservation
-                        await prisma.reservation.delete({
-                            where: {
-                                id: reservation.id
-                            }
-                        })
-                    }
-                    sendReservationRequest(event.body.Id, parseInt(event.body.Time.split(":")[0]) + 1, 0).then(response => {
-                        console.log("Extended reservation for id" + event.body.Id)
-                    })
-                        .catch(err => {
-                            console.log(err)
-                        })
-                }
-
-                global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
-                let time = event.body.Time
-                let hours = parseInt(time.split(":")[0])
-                let minutes = parseInt(time.split(":")[1])
-                if (global.time === undefined || global.time.hours !== hours || global.time.minutes !== minutes) {
-                    global.time = new Time(hours, minutes)
-                    console.log(global.time.getTime())
-                }
-
-
-                // io.emit('ps', event.body);
-                await context.updateCheckpoint(events[events.length - 1]);
-            }
-        }
-        ,
-
-        processError: async (err, context) => {
-            console.log(`Error : ${err}`);
-        }
-    },
-    {
-        startPosition: latestEventPosition
-    });
-
-console.log("subscription setup done", subscription.isRunning);
-
-// const server = createServer(app);
-// const io = new Server(server, {
-//     cors: {
-//         origin: '*',
-//     }
-// });
-
-
-// io.on('connection', (socket) => {
-//     console.log('a user connected');
-// });
 
 
 class Start {
@@ -124,38 +11,9 @@ class Start {
         // global.logger = new Logger();
         const routing = new Routing();
         routing.start()
-
-    }
-
-
+        const event_hub = new EventHub();
+        const cron = new Cron();
+      }
 }
 
 new Start();
-
-
-let parkingSpots = fetch(global.config.PARKING_API + '/api/ParkingSpot/getAll', {
-    method: 'GET',
-    headers: {
-        'accept': 'application/json',
-        'Api-Key': global.config.API_KEY
-    }
-})
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.json();
-    })
-    .then(pSpots => {
-        global.parkingSpots = pSpots.reduce((acc, spot) => {
-            acc[spot.id] = spot;
-            return acc;
-        }, {});
-    })
-    .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-    });
-
-module.exports = {
-    prisma
-}

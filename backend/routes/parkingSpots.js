@@ -1,8 +1,25 @@
 const express = require("express");
 const {PrismaClient} = require("@prisma/client");
 const router = express.Router();
-const API_URL_KUKAC = "https://hackathon.kojikukac.com/api/ParkingSpot"
 const prisma = new PrismaClient();
+const axios = require('axios');
+const AccessControl = require('accesscontrol');
+
+const ac = new AccessControl();
+
+ac.grant('user')
+  .create('reservation')
+  .readOwn('profile')
+  .updateOwn('profile');
+
+ac.grant('admin')
+  .extend('user')
+  .create('spot')
+  .deleteAny('spot')
+  .readAny('data')
+  .updateAny('profile')
+  .createAny('profile')
+
 
 router.get("/", (req, res) => {
     res.send(global.parkingSpots)
@@ -30,26 +47,120 @@ router.post("/reserve/:id", (req, res) => {
         return;
     }
 
-    fetch(API_URL_KUKAC + "/reserve", {
-        method: 'POST', headers: {
-            'accept': '*/*', 'Api-Key': process.env.API_KEY, 'Content-Type': 'application/json'
-        }, body: {
-            id, endH, endM
-        }
-    })
-        .then(response => response.json()
-        )
-        .then(response => {
-            console.log(response);
-            if (!response.ok) {
-                res.status(400).send({message: response.statusText});
-                return
+    if (ac.can(role).create('reservation').granted) {
+        fetch(global.config.PARKING_API + "/api/ParkingSpot/reserve", {
+            method: 'POST', headers: {
+                'accept': '*/*', 'Api-Key': process.env.API_KEY, 'Content-Type': 'application/json'
+            }, body: {
+                id, endH, endM
             }
-            console.log(response);
-            global.parkingSpots[id].occupied = true;
-            res.send(global.parkingSpots[id])
         })
+            .then(response => response.json()
+            )
+            .then(response => {
+                console.log(response);
+                if (!response.ok) {
+                    res.status(400).send({message: response.statusText});
+                    return
+                }
+                console.log(response);
+                global.parkingSpots[id].occupied = true;
+                res.send(global.parkingSpots[id])
+            })
+    }
 })
+
+router.post("/create", async (req, res) => {
+    const {latitude, longitude, parkingSpotZone} = req.body;
+    console.log(req.user)
+    const { role } = req.user;
+    console.log(role)
+    if (ac.can(role).create('spot').granted) {
+        try {
+            const resp = await axios.post(global.config.PARKING_API + '/api/ParkingSpot',
+            {
+                latitude,
+                longitude,
+                parkingSpotZone
+            },
+            {
+                headers: {
+                    'Api-Key': global.config.API_KEY
+                }
+            }
+            )
+            console.log(resp)
+
+            if (resp.status != 200) {
+                throw new Error(resp)
+            }
+
+            const spot = await prisma.spot.create({
+                data: {
+                    latitude,
+                    longitude,
+                    parkingSpotZone,
+                    id: resp.data.id
+                }
+            })
+
+            return res.status(201).send({error: false, data: spot, message: 'Spot created successfully'});
+        } catch (error) {
+            console.log(error);
+            return res.status(201).send({ error: true, data: {}, notice: 'Internal error' });
+        }
+    }
+    return res.status(403).json({ message: 'Forbidden' });
+})
+
+router.delete("/delete", async (req, res) => {
+    const {id} = req.body;
+
+    const { role } = req.user;
+    if (ac.can(role).deleteAny('spot').granted) {
+        try {
+
+            const spot = await prisma.spot.findUnique({
+                where: {
+                  id,
+                },
+              })
+            if (!spot)
+            {
+                return res.status(400).send({error: true, message:"Doesn't exist"})
+            }
+            console.log(spot)
+            
+            global.parkingSpots[id] = null;
+
+
+            await prisma.spot.delete({
+                where: {
+                    id
+                }
+            })
+
+            const resp = await axios.delete(global.config.PARKING_API + `/api/ParkingSpot/${id}`,
+            {
+                headers: {
+                    'Api-Key': global.config.API_KEY
+                }
+            })
+            console.log(resp)
+
+            if (resp.status != 200) {
+                throw new Error(resp)
+            }
+
+            return res.status(201).send({error: false, message: 'Spot deleted successfully'});
+        } catch (error) {
+            console.log(error);
+            return res.status(201).send({ error: true, data: {}, notice: 'Internal error' });
+        }
+    }
+    return res.status(403).json({ message: 'Forbidden' });
+})
+
 
 
 module.exports = router;
