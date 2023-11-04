@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import Box from '../../components/Box'
 import { User } from '../../model/User'
 import Drawer from '../../components/Drawer'
-import { BackIcon, EditIcon, TowTruckIcon } from '../../Icons'
+import { BackIcon } from '../../Icons'
 import { CircleButton } from '../../components/Button'
 import { useNavigate } from 'react-router'
 
