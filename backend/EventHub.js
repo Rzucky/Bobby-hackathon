@@ -113,6 +113,7 @@ class EventHub {
 
                         let now = new Date();
 
+
                         // Set the hours and minutes to the current date
                         now.setHours(time.hours, time.minutes, 0, 0);
 

@@ -71,13 +71,17 @@ function getCurrentDay(){
 }
 
 async function persistReservationHistory(prisma, userId, parkingSpotId, endTime, occupied) {
+    console.log(parkingSpotId)
+    let parkingSpotZone = global.parkingSpots[parkingSpotId].parkingSpotZone
+
     return prisma.reservationHistory.create({
         data: {
             userId,
             parkingSpotId,
             endTime,
             occupied,
-            day: getCurrentDay()
+            day: getCurrentDay(),
+            price: global.zoneStats[parkingSpotZone].price,
         }
     }).then(reservation => {
         console.log("Reservation history created successfully.")
