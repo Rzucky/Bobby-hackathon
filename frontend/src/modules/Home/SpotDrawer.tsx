@@ -5,6 +5,9 @@ import Flex from '../../components/Flex'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { useState } from 'react'
+import { postReservation } from './api'
+import { getUser } from '../App/Auth/auth'
+import { useMapMarkerContext } from '../Map/context'
 
 const Tag = styled(Box)`
   padding: 4px 12px;
@@ -18,6 +21,7 @@ const Tag = styled(Box)`
 `
 
 export default function SpotDrawer() {
+  const { selectedMarker } = useMapMarkerContext()
   const now = new Date()
 
   const nowHours = `0${now.getHours()}`.slice(-2)
@@ -44,7 +48,17 @@ export default function SpotDrawer() {
     setMinutes(`0${minutes}`.slice(-2))
   }
 
-  const handleReserve = () => {}
+  const handleReserve = () => {
+    if (!selectedMarker) return
+
+    const user = getUser()
+
+    if (!user) return
+
+    postReservation({ userId: user.id, parkingSpotId: selectedMarker.id, endHr: +hours, endMin: +minutes })
+      .then(res => console.log('success', res))
+      .catch(e => console.log('err', e))
+  }
 
   return (
     <Drawer disabled initialHeight={300}>
@@ -97,11 +111,6 @@ export default function SpotDrawer() {
                 width="40px"
               />
             </Flex>
-          </Box>
-
-          <Box marginTop="8px">
-            <h3>Price:</h3>
-            <p>€ 3,45</p>
           </Box>
         </Box>
 

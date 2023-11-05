@@ -19,7 +19,9 @@ export default function NavigationDrawer() {
   }
 
   const handleNearestParking = () => {
-    // TODO
+    const btn = document.getElementById('btn-closest')
+    console.log(btn)
+    btn?.click()
   }
 
   const handleFilters = () => {
