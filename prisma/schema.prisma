@@ -55,6 +55,7 @@ model ReservationHistory {
   userId        Int
   parkingSpotId String
   endTime       String
+  day           Int
   occupied      Boolean
 }
 

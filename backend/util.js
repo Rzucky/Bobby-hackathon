@@ -62,6 +62,13 @@ function getCurrentTime() {
 
     return new Time(mins, secs)
 }
+function getCurrentDay(){
+    const now = new Date();
+    let hours = now.getHours()
+    let gameDays = hours * 2 + now.getMinutes() / 30
+    gameDays += now.getDay() * 48
+    return gameDays
+}
 
 async function persistReservationHistory(prisma, userId, parkingSpotId, endTime, occupied) {
     return prisma.reservationHistory.create({
@@ -69,7 +76,8 @@ async function persistReservationHistory(prisma, userId, parkingSpotId, endTime,
             userId,
             parkingSpotId,
             endTime,
-            occupied
+            occupied,
+            day: getCurrentDay()
         }
     }).then(reservation => {
         console.log("Reservation history created successfully.")
@@ -82,5 +90,6 @@ module.exports = {
     Time,
     parseTime,
     persistReservationHistory,
-    getCurrentTime
+    getCurrentTime,
+    getCurrentDay
 }
