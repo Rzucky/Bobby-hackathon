@@ -6,6 +6,7 @@ import SpotDrawer from './SpotDrawer'
 import { MapFiltersContextProvider, useMapFilterContext } from './context'
 import { Coords } from '../../model/Coords'
 import { getUser } from '../App/Auth/auth'
+import Map from '../Map'
 
 const Container = styled(Flex)`
   background-color: ${p => p.theme.accent};
@@ -26,9 +27,9 @@ function Home() {
 
   return (
     <Container height="100%" textAlign="center">
-      <h1>ovdje ce doci map</h1>
-      {electricCharging ? 'y' : 'n'}
-      {handicapped ? 'y' : 'n'}
+      <Map />
+      {/* {electricCharging ? 'y' : 'n'}
+      {handicapped ? 'y' : 'n'} */}
 
       {!!selectedSpot ? <SpotDrawer /> : <NavigationDrawer />}
     </Container>

@@ -16,7 +16,8 @@ const DrawerHandle = styled.div`
   width: 100%;
   height: 32px;
 
-  background-color: ${p => p.theme.darkSecondary};
+  background-color: ${p => `${p.theme.darkSecondary}88`};
+  backdrop-filter: blur(5px);
   border-radius: 16px 16px 0 0;
 
   &::after {
@@ -35,7 +36,8 @@ const DrawerHandle = styled.div`
 `
 
 const DrawerContent = styled(Flex)<{ isOpen?: boolean; drawerHeight: number; initialHeight: number }>`
-  background-color: ${p => p.theme.darkSecondary};
+  background-color: ${p => `${p.theme.darkSecondary}88`};
+  backdrop-filter: blur(5px);
   height: ${p => (p.isOpen ? `${p.drawerHeight}px` : `${p.initialHeight}px`)};
 
   transition: height ease-in-out 500ms;

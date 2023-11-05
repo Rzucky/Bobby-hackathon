@@ -5,7 +5,7 @@ import { Libraries } from '@googlemaps/js-api-loader'
 const libraries: Libraries = ['places', 'marker', 'routes']
 
 function ParkingMap() {
-  const MAPS_API_KEY = 'AIzaSyAKPWn2CpkeYOypOiIbnpaDhbnZP3fky_M'
+  const MAPS_API_KEY = process.env.REACT_APP_MAPS_API_KEY ?? ''
 
   const mapContainerStyle = {
     width: '100vw',

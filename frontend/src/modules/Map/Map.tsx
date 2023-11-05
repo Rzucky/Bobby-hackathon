@@ -1,3 +1,5 @@
+import ParkingMap from '../../ParkingMap'
+
 export default function Map() {
-  return <div>Map</div>
+  return <ParkingMap />
 }
