@@ -42,7 +42,7 @@ router.post("/", async (req, res) => {
                 return res.status(200).send({message: "Reservation created successfully."});
             })
             .catch(err => {
-                console.log(err)
+                console.log(err.response.data)
             return res.status(500).send({message: "Couldn't create reservation."});
         })
     }
@@ -53,32 +53,44 @@ router.post("/", async (req, res) => {
 })
 
 router.post("/finish", async (req, res) => {
-    const {parkingSpotId} = req.body;
+    const {parkingSpotId, email} = req.body;
     console.log(req.user)
     const {role} = req.user;
-    if (ac.can(role).create('reservation').granted){
+    if (ac.can(role).delete('reservation').granted){
         try {
             const user = await prisma.user.findFirst({
                 where: {
                     email
                 }
             })
+            console.log(user, req.user)
             if ((!user || user.email != req.user.email) && req.user.role != 'admin')
             {
                 return res.status(400).send({message: "User doesn't exist"});
             }
-            await prisma.reservation.delete({
+            const resp = await prisma.reservation.findFirst({
+                where: {
+                    userId: user.id,
+                    parkingSpotId
+                }
+            });
+            console.log(resp)
+            if (resp == null) {
+                return res.status(400).send({message: 'Already finished'})
+            }
+
+            await prisma.reservation.deleteMany({
                 where: {
                     userId: user.id,
                     parkingSpotId
                 }
             })   
 
-            persistReservationHistory(prisma, user.id, parkingSpotId, getCurrentTime().getTime(), false)
+            await persistReservationHistory(prisma, user.id, parkingSpotId, getCurrentTime().getTime(), false)
 
             const reservations = await prisma.reservationHistory.findMany({
                 where: {
-                    userId: 1,
+                    userId: user.id,
                     parkingSpotId
                 }
             }) 
@@ -91,10 +103,11 @@ router.post("/finish", async (req, res) => {
                 })
             }
 
-            const calcs = calculateTimeDifferenceWithPrice(times)
+            const calcs = await calculateTimeDifferenceWithPrice(times)
+            
 
             return res.status(200).send({error: false, data: {
-                message: `Total parked time: ${calcs.hours} and ${calcs.minutes}`,
+                message: `Total parked time: ${calcs.hours} hours and ${calcs.minutes} minutes`,
                 price: calcs.price
             } , message: 'success' })
         } catch (error) {
@@ -145,7 +158,7 @@ router.get("/:email", async (req, res) => {
             if (global.userStats[user.id] != null) {
                 stats = global.userStats[user.id]
             };
-            console.log(global.userStats)
+
             let userStats = { 
                 stats: stats ?? 'No stats', 
                 reservation: reservation ?? 'No reservation'

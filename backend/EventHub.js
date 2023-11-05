@@ -2,7 +2,7 @@ const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs
 const {createServer} = require('http');
 const {Server} = require('socket.io');
 const {PrismaClient} = require("@prisma/client");
-const {parseTime, sendReservationRequest, Time, persistReservationHistory, getCurrentTime} = require("./util");
+const {parseTime, sendReservationRequest, Time, persistReservationHistory, getCurrentTime, calculateTimeDifferenceWithPrice} = require("./util");
 const prisma = new PrismaClient()
 /*
     Explanation:
@@ -77,12 +77,37 @@ class EventHub {
                             let end = parseTime(reservation.endTime)
                             if (now.diffHours(end) >= 0) {
                                 //delete reservation
-                                await prisma.reservation.delete({
+                                persistReservationHistory(prisma, reservation.userId, reservation.parkingSpotId, event.body.Time, false)
+                                await prisma.reservation.deleteMany({
                                     where: {
                                         id: reservation.id
                                     }
                                 })
-                                persistReservationHistory(prisma,reservation.userId , reservation.parkingSpotId, event.body.Time, false)
+
+                                const reservations = await prisma.reservationHistory.findMany({
+                                    where: {
+                                        userId: reservation.userId,
+                                        parkingSpotId: reservation.parkingSpotId
+                                    }
+                                })
+
+                                let times = []
+                                for (const reservation of reservations)
+                                {
+                                    times.push({
+                                        time: reservation.endTime,
+                                        price: reservation.price
+                                    })
+                                }
+
+                                const calcs = calculateTimeDifferenceWithPrice(times)
+
+                                await prisma.debt.create({
+                                    data: {
+                                        userId: reservation.userId,
+                                        amount: calcs.price
+                                    },
+                                })
                                 continue;
                             }
                             let endHours = now.addHours(2).hours
@@ -154,6 +179,9 @@ class EventHub {
                             },
                             create: data_object,
                         })
+
+                        data_object.price = global.zoneStats[data_object.parkingSpotZone].price
+                        data_object["24h_stats"] = global.spotStats[data_object.id]?.totalReservations ?? 0;
 
                         global.io.emit('ps', data_object);
                     }

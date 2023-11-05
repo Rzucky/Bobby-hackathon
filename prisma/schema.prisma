@@ -31,7 +31,7 @@ model ReservationHistory {
   day           Int
   occupied      Boolean
   price         Float?
-  parkingSpot   Spot    @relation(fields: [parkingSpotId], references: [id])
+  parkingSpot   Spot    @relation(fields: [parkingSpotId], references: [id],  onDelete: Cascade)
 }
 
 model ReservationLength {
@@ -70,9 +70,9 @@ model User {
   Spot         Spot[]
 }
 
-model Debts {
+model Debt {
   id           Int           @id @default(autoincrement())
-  user         Int
+  userId         Int
   amount       Float
 }
 
