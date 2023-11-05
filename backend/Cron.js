@@ -80,7 +80,6 @@ class Cron {
         try {
             await prisma.spot.deleteMany({});
             await prisma.spot.createMany({
-    
               data: Object.values(global.parkingSpots)
             });            
         } catch (error) {
