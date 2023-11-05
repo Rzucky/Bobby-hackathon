@@ -7,33 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
-  name          String?
-  password      String
-  handicapped   Boolean       @default(false)
-  type          UserType
-  licencePlate  String        @unique
-  Reservation   Reservation[]
-  reservedSpots Spot[]        @relation("UserReservedSpots")
-}
-
-model Spot {
-  id                String    @id
-  latitude          String
-  longitude         String
-  occupied          Boolean   @default(false)
-  occupiedTimestamp DateTime?
-  reserved_user_id  Int?
-  difficult         Boolean   @default(false)
-  type              SpotTypes @default(Regular)
-  parkingSpotZone   Zones?    @default(Zone1)
-  reserved_by       User?     @relation("UserReservedSpots", fields: [reserved_user_id], references: [id])
-
-  @@index([id], type: Hash)
-}
-
 model Alert {
   id           Int    @id @default(autoincrement())
   message      String
@@ -47,7 +20,7 @@ model Reservation {
   userId        Int
   parkingSpotId String
   endTime       String
-  user          User   @relation(fields: [userId], references: [id])
+  User          User   @relation(fields: [userId], references: [id])
 }
 
 model ReservationHistory {
@@ -57,6 +30,8 @@ model ReservationHistory {
   endTime       String
   day           Int
   occupied      Boolean
+  price         Float?
+  parkingSpot   Spot    @relation(fields: [parkingSpotId], references: [id])
 }
 
 model ReservationLength {
@@ -65,6 +40,41 @@ model ReservationLength {
   parkingSpotId String
   length        Int
   time          String
+}
+
+model Spot {
+  id                String    @id
+  latitude          String
+  longitude         String
+  occupied          Boolean   @default(false)
+  occupiedTimestamp DateTime?
+  reserved_user_id  Int?
+  difficult         Boolean   @default(false)
+  type              SpotTypes @default(Regular)
+  parkingSpotZone   Zones?    @default(Zone1)
+  User              User?     @relation(fields: [reserved_user_id], references: [id])
+  reservationHistory ReservationHistory[]
+
+  @@index([id], type: Hash)
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  name         String?
+  password     String
+  handicapped  Boolean       @default(false)
+  type         UserType
+  licencePlate String        @unique
+  Reservation  Reservation[]
+  Spot         Spot[]
+}
+
+enum SpotTypes {
+  Regular
+  Handicapped
+  ECharging
+  Family
 }
 
 enum UserType {
@@ -79,11 +89,4 @@ enum Zones {
   Zone3
   Special
   Zone4
-}
-
-enum SpotTypes {
-  Regular
-  Handicapped
-  ECharging
-  Family
 }

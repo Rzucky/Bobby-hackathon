@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {PrismaClient} = require("@prisma/client");
 const axios = require("axios");
-const {sendReservationRequest, Time, persistReservationHistory, getCurrentTime} = require("../util");
+const {sendReservationRequest, Time, persistReservationHistory, getCurrentTime, calculateTimeDifferenceWithPrice} = require("../util");
 
 const prisma = new PrismaClient()
 router.post("/", async (req, res) => {
@@ -48,7 +48,6 @@ router.post("/", async (req, res) => {
                 return res.status(200).send({message: "Reservation created successfully."});
             })
             .catch(err => {
-            console.log("err2")
                 console.log(err)
             return res.status(500).send({message: "Couldn't create reservation."});
         })
@@ -56,6 +55,60 @@ router.post("/", async (req, res) => {
     else {
         return res.status(403).json({message: 'Forbidden'});
 
+    }
+})
+
+router.post("/finish", async (req, res) => {
+    const {parkingSpotId} = req.body;
+    console.log(req.user)
+    const {role} = req.user;
+    if (ac.can(role).create('reservation').granted){
+        try {
+            const user = await prisma.user.findFirst({
+                where: {
+                    email
+                }
+            })
+            if ((!user || user.email != req.user.email) && req.user.role != 'admin')
+            {
+                return res.status(400).send({message: "User doesn't exist"});
+            }
+            await prisma.reservation.delete({
+                where: {
+                    userId: user.id,
+                    parkingSpotId
+                }
+            })   
+
+            persistReservationHistory(prisma, user.id, parkingSpotId, getCurrentTime().getTime(), false)
+
+            const reservations = await prisma.reservationHistory.findMany({
+                where: {
+                    userId: 1,
+                    parkingSpotId
+                }
+            }) 
+            let times = []
+            for (const reservation of reservations)
+            {
+                times.push({
+                    time: reservation.endTime,
+                    price: reservation.price
+                })
+            }
+
+            const calcs = calculateTimeDifferenceWithPrice(times)
+
+            return res.status(200).send({error: false, data: {
+                message: `Total parked time: ${calcs.hours} and ${calcs.minutes}`,
+                price: calcs.price
+            } , message: 'success' })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).send({message: 'Internal error'});
+        }
+    } else {
+        return res.status(403).json({message: 'Forbidden'});
     }
 })
 
@@ -104,6 +157,9 @@ router.get("/:email", async (req, res) => {
             console.log(error)
             return res.status(500).send({message: 'Internal error'});
         }
+    } else {
+        return res.status(403).json({message: 'Forbidden'});
+
     }
 })
 

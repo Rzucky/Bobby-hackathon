@@ -158,14 +158,14 @@ class Cron {
         try {
             // Fetch all reservations with related spot information
             const reservations = await prisma.reservationHistory.findMany({
-                include: { // 'include' is used to fetch related records
+                include: { 
                     parkingSpot: true,
                 }
             });
         
             // Process the results to calculate stats
             const userStats = reservations.reduce((acc, reservation) => {
-   
+
                 const { userId, parkingSpot } = reservation;
                 acc[userId] = acc[userId] || { zones: {}, totalReservations: 0 };
                 acc[userId].zones[parkingSpot.parkingSpotZone] = acc[userId].zones[parkingSpot.parkingSpotZone] || 0;

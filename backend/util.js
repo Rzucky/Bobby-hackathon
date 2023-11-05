@@ -82,6 +82,45 @@ async function persistReservationHistory(prisma, userId, parkingSpotId, endTime,
     }).then(reservation => {
         console.log("Reservation history created successfully.")
     });
+}
+function calculateTimeDifferenceWithPrice(times) {
+    function parseTime(timeString) {
+        const parts = timeString.split(':');
+        const hours = parseInt(parts[0], 10);
+        const minutes = parseInt(parts[1], 10);
+
+        const date = new Date();
+        date.setHours(hours, minutes, 0, 0);
+        return date;
+      }
+      
+      function findTimeDifference(timesArray) {
+        if (timesArray.length === 0) return null;
+      
+        // Parse all times and sort them
+        const parsedTimes = timesArray.map(t => ({
+            time: parseTime(t.time),
+            price: t.price
+          }));
+        parsedTimes.sort((a, b) => a.time - b.time);
+
+        // Get the smallest and largest times
+        const minTime = parsedTimes[0].time;
+        const startPrice = parsedTimes[0].price;
+        const maxTime = parsedTimes[parsedTimes.length - 1].time;
+      
+        // Calculate the difference in minutes
+        const difference = (maxTime - minTime) / (1000 * 60); // difference in minutes
+        const hours = Math.floor(difference / 60);
+        const minutes = difference % 60;
+
+        let price = (difference * startPrice) / 60 
+      
+        return { hours, minutes, price };
+      }
+      
+      const timeDifference = findTimeDifference(times);
+      console.log(`Time difference: ${timeDifference.hours} hours and ${timeDifference.minutes} minutes for price: ${timeDifference.price}`);
 
 }
 
@@ -91,5 +130,6 @@ module.exports = {
     parseTime,
     persistReservationHistory,
     getCurrentTime,
-    getCurrentDay
+    getCurrentDay,
+    calculateTimeDifferenceWithPrice
 }
