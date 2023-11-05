@@ -71,6 +71,9 @@ class Cron {
               } else if (type_chance < 0.2) {
                 type = "ECharging";
               }
+              else if (type_chance < 0.3) {
+                type = "Family";
+              }
           
               let now = new Date();
               let ISOformat = now.toISOString();
@@ -104,6 +107,17 @@ class Cron {
         {
             await this.waitForVariable()
         }
+
+        this.calculateZoneStats()
+        await this.calculateUserStats()
+
+        await this.adjustPrices()
+
+        // Reschedule the function after 5 seconds
+        setTimeout(() => this.calculateStats(), 5000);
+    }
+
+    calculateZoneStats() {
         const zoneStats = {};
 
         // Initialize counters for each zone
@@ -136,11 +150,75 @@ class Cron {
             };
         });
         
-        global.stats = results;
         console.log(getCurrentTime().getTime() +  ': STATS:', global.stats)
+        global.zoneStats = results;
+    }
 
-        // Reschedule the function after 5 seconds
-        setTimeout(() => this.calculateStats(), 5000);
+    async calculateUserStats() {
+        try {
+            // Fetch all reservations with related spot information
+            const reservations = await prisma.reservationHistory.findMany({
+                include: { // 'include' is used to fetch related records
+                    parkingSpot: true,
+                }
+            });
+        
+            // Process the results to calculate stats
+            const userStats = reservations.reduce((acc, reservation) => {
+   
+                const { userId, parkingSpot } = reservation;
+                acc[userId] = acc[userId] || { zones: {}, totalReservations: 0 };
+                acc[userId].zones[parkingSpot.parkingSpotZone] = acc[userId].zones[parkingSpot.parkingSpotZone] || 0;
+
+                acc[userId].zones[parkingSpot.parkingSpotZone] += 1;
+                acc[userId].totalReservations += 1;
+                   
+                return acc;
+            }, {});
+            
+            // Calculate percentages for each user by zone
+            Object.values(userStats).forEach(user => {
+                Object.keys(user.zones).forEach(zone => {
+                    const count = user.zones[zone];
+                    const percentage = (count / user.totalReservations) * 100;
+                    user.zones[zone] = {
+                      count: count,
+                      percentage: parseFloat(percentage.toFixed(2))
+                    };
+                  });
+            });
+
+            global.userStats = userStats;
+        
+            } catch (error) {
+                console.error(error);
+            }
+    }
+
+    adjustPrices() {
+        let prices = global.config.PRICES.split('|')
+        let i = 0;
+        for (const zone of ['Zone1', 'Zone2', 'Zone3', 'Zone4']) {
+            let occupancyPerc = parseFloat(global.zoneStats[zone].occupancyPercentage)
+            let multiplier;
+            if (occupancyPerc <= 10) {
+                multiplier = 0.5;
+            } else if (occupancyPerc <= 30) {
+                multiplier = 0.75;
+            } else if (occupancyPerc >= 90) {
+                multiplier = 1.5;
+            } else if (occupancyPerc >= 80) {
+                multiplier = 1.25;
+            } else if (occupancyPerc >= 70) {
+                multiplier = 1.1;
+            } else {
+                multiplier = 1.0;
+            }
+            global.zoneStats[zone].price = prices[i] * multiplier;
+            
+            i++;
+        }
+        console.log('STATS AFTER ADJUST:', global.zoneStats)
     }
 
     // startBackup() {
