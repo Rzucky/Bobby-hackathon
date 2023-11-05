@@ -7,6 +7,7 @@ router.post("/", (req, res) => {
 
     prisma.alert.create({
         data: {
+            licensePlate,
             latitude,
             longitude,
             message
