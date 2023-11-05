@@ -57,7 +57,7 @@ model ReservationHistory {
   endTime       String
   day           Int
   occupied      Boolean
-  price         Int
+  price         Int?
 }
 
 model ReservationLength {
