@@ -2,7 +2,7 @@ const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs
 const {createServer} = require('http');
 const {Server} = require('socket.io');
 const {PrismaClient} = require("@prisma/client");
-const {parseTime, sendReservationRequest, Time} = require("./util");
+const {parseTime, sendReservationRequest, Time, persistReservationHistory} = require("./util");
 const prisma = new PrismaClient()
 /*
     Explanation:
@@ -68,26 +68,39 @@ class EventHub {
                     }, {});
                     
                     for (const event of events) {
+                        console.table(event.body.Id)
                         //if got freed and we have that id in reservations
                         if ((!event.body.IsOccupied) && event.body.Id in reservations) {
                             console.log("ReReservation for id" + event.body.Id)
                             let reservation = reservations[event.body.Id]
                             let now = parseTime(event.body.Time)
-                            let end = parseTime(reservation.end)
-                            if (now >= end) {
+                            let end = parseTime(reservation.endTime)
+                            if (now.diffHours(end) >= 0) {
                                 //delete reservation
                                 await prisma.reservation.delete({
                                     where: {
                                         id: reservation.id
                                     }
                                 })
+                                persistReservationHistory(prisma,reservation.userId , reservation.parkingSpotId, event.body.Time, false)
+                                continue;
                             }
-                            sendReservationRequest(event.body.Id, parseInt(event.body.Time.split(":")[0]) + 1, 0).then(response => {
+                            let endHours = now.addHours(2).hours
+                            if (end.diffHours(now.addHours(2)) < 2){
+                                endHours = end.hours
+                            }
+
+                            sendReservationRequest(event.body.Id, endHours, 0).then(response => {
                                 console.log("Extended reservation for id" + event.body.Id)
+                                persistReservationHistory(prisma,reservation.userId , reservation.parkingSpotId, event.body.Time, true)
                             })
-                                .catch(err => {
-                                    console.log(err)
-                                })
+                            .catch(err => {
+                                console.log(err)
+                            })
+                        }
+                        else {
+                            console.log("Kafka user change")
+                            persistReservationHistory(prisma, -1, event.body.Id, event.body.Time, event.body.IsOccupied)
                         }
 
                         global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
@@ -118,7 +131,7 @@ class EventHub {
                             case type_chance < 0.2:
                                 type = "ECharging";
                                 break;
-                            case type_chance < 0.2:
+                            case type_chance < 0.3:
                                 type = "Family";
                                 break;
                             default:

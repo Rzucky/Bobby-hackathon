@@ -57,6 +57,13 @@ model ReservationHistory {
   occupied      Boolean
 }
 
+model ReservationLength {
+  id            Int    @id @default(autoincrement())
+  userId        Int
+  parkingSpotId String
+  length        Int
+}
+
 enum UserType {
   admin
   user
