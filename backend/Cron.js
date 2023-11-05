@@ -118,7 +118,7 @@ class Cron {
         }
 
         this.calculateZoneStats()
-        // await this.calculateUserStats()
+        await this.calculateUserStats()
 
         await this.adjustPrices()
 

@@ -51,7 +51,6 @@ class Routing {
         try {
             const decoded = jwt.verify(token, global.config.HASH_KEY);
             req.user = decoded;
-            console.log('AAAAAAAAAA')
             next();
         } catch (err) {
             console.log(err);

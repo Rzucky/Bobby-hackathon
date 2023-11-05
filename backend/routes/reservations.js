@@ -141,8 +141,13 @@ router.get("/:email", async (req, res) => {
                 }
             })
 
+            let stats = null
+            if (global.userStats[user.id] != null) {
+                stats = global.userStats[user.id]
+            };
+            console.log(global.userStats)
             let userStats = { 
-                stats: global.userStats[user.id] ?? 'No stats', 
+                stats: stats ?? 'No stats', 
                 reservation: reservation ?? 'No reservation'
             }
 
