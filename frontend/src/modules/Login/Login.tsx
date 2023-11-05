@@ -5,17 +5,28 @@ import { Subtitle } from '../Register/styles'
 import Button from '../../components/Button'
 import Link from '../../components/Link'
 import { postLogin } from './api'
-import { setUser } from '../App/Auth/auth'
+import { setToken, setUser } from '../App/Auth/auth'
+import { useNavigate } from 'react-router'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const [error, setError] = useState<string>()
+
+  const navigate = useNavigate()
+
   const handleLogin = () => {
-    postLogin({ email, password }).then(res => {
-      alert('success')
-      setUser(res)
-    })
+    postLogin({ email, password })
+      .then(res => {
+        setUser(res.user)
+        setToken(res.token)
+
+        navigate('/')
+      })
+      .catch(e => {
+        setError(e)
+      })
   }
 
   return (
@@ -43,6 +54,7 @@ export default function Login() {
           />
         </div>
       </Flex>
+      {error && <p>{error}</p>}
       <Flex marginTop="16px" justifyContent="center" flexDirection="column">
         <div style={{ marginBottom: '12px' }}>
           <Button onClick={handleLogin}>Sign in</Button>

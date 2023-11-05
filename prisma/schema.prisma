@@ -71,9 +71,9 @@ model User {
 }
 
 model Debts {
-  id           Int           @id @default(autoincrement())
-  user         Int
-  amount       Float
+  id     Int   @id @default(autoincrement())
+  user   Int
+  amount Float
 }
 
 enum SpotTypes {

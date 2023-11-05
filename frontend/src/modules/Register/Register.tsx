@@ -100,10 +100,7 @@ function RegistrationWrapper() {
       initialValues={INITIAL_VALUES}
       onSubmit={values => {
         postRegistration({ licencePlate: values.license, ...values })
-          .then(() => {
-            alert('success')
-            navigate('/login')
-          })
+          .then(() => navigate('/login'))
           .catch(() => alert('error'))
       }}
       validationSchema={registrationValidator}
