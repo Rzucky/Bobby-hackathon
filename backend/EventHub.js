@@ -2,7 +2,7 @@ const {EventHubConsumerClient, latestEventPosition} = require("@azure/event-hubs
 const {createServer} = require('http');
 const {Server} = require('socket.io');
 const {PrismaClient} = require("@prisma/client");
-const {parseTime, sendReservationRequest, Time, persistReservationHistory} = require("./util");
+const {parseTime, sendReservationRequest, Time, persistReservationHistory, getCurrentTime} = require("./util");
 const prisma = new PrismaClient()
 /*
     Explanation:
@@ -12,6 +12,8 @@ const prisma = new PrismaClient()
  */
 class EventHub {
     constructor() {
+
+        console.log(getCurrentTime())
         const connectionString = process.env.CONNECTION_STRING;
         const eventHubName = process.env.EVENT_HUB_NAME;
         const consumerGroup = process.env.CONSUMER_GROUP;
@@ -73,7 +75,7 @@ class EventHub {
                         if ((!event.body.IsOccupied) && event.body.Id in reservations) {
                             console.log("ReReservation for id" + event.body.Id)
                             let reservation = reservations[event.body.Id]
-                            let now = parseTime(event.body.Time)
+                            let now = getCurrentTime()
                             let end = parseTime(reservation.endTime)
                             if (now.diffHours(end) >= 0) {
                                 //delete reservation
@@ -104,20 +106,15 @@ class EventHub {
                         }
 
                         global.parkingSpots[event.body.Id].occupied = event.body.IsOccupied;
-                        let time = event.body.Time
-                        let hours = parseInt(time.split(":")[0])
-                        let minutes = parseInt(time.split(":")[1])
-                        if (global.time === undefined || global.time.hours !== hours || global.time.minutes !== minutes) {
-                            global.time = new Time(hours, minutes)
-                            console.log(global.time.getTime())
-                        }
+                        let time = getCurrentTime()
+                        // let hours = parseInt(time.split(":")[0])
+                        // let minutes = parseInt(time.split(":")[1])
+                         // console.log(global.time.getTime(), getCurrentTime().getTime())
 
                         let now = new Date();
-                        // Extract hours and minutes from the time string and pad them if needed
-                        let [hrs, mnts] = time.split(':').map(component => component.padStart(2, '0'));
 
                         // Set the hours and minutes to the current date
-                        now.setHours(parseInt(hrs, 10), parseInt(mnts, 10), 0, 0);
+                        now.setHours(time.hours, time.minutes, 0, 0);
 
                         // Convert to ISO 8601 format
                         let ISOformat = now.toISOString();

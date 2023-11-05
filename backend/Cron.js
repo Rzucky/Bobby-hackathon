@@ -3,6 +3,7 @@ const {PrismaClient} = require("@prisma/client");
 const prisma = new PrismaClient();
 const uuid = require('uuid')
 const axios = require('axios')
+const {getCurrentTime} = require("./util");
 class Cron {
     constructor() {
         this.startup();
@@ -136,7 +137,7 @@ class Cron {
         });
         
         global.stats = results;
-        console.log('STATS:', global.stats)
+        console.log(getCurrentTime().getTime() +  ': STATS:', global.stats)
 
         // Reschedule the function after 5 seconds
         setTimeout(() => this.calculateStats(), 5000);

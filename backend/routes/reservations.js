@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {PrismaClient} = require("@prisma/client");
 const axios = require("axios");
-const {sendReservationRequest, Time, persistReservationHistory} = require("../util");
+const {sendReservationRequest, Time, persistReservationHistory, getCurrentTime} = require("../util");
 
 const prisma = new PrismaClient()
 router.post("/", async (req, res) => {
@@ -24,7 +24,7 @@ router.post("/", async (req, res) => {
             res.status(400).send({message: "Parking spot is already occupied."})
             return;
         }
-        return sendReservationRequest(parkingSpotId, parseInt(global.time.hours) + 2, 0).then(async response => {
+        return sendReservationRequest(parkingSpotId, getCurrentTime().hours + 2, 0).then(async response => {
             await prisma.reservation.create({
                 data: {
                     userId,
@@ -33,13 +33,13 @@ router.post("/", async (req, res) => {
                 }
             })
 
-            await persistReservationHistory(prisma, userId, parkingSpotId, global.time.getTime(), true)
+            await persistReservationHistory(prisma, userId, parkingSpotId, getCurrentTime().getTime(), true)
 
             await prisma.reservationLength.create({
                 data: {
                     userId,
                     parkingSpotId,
-                    length: new Time(parseInt(endHr), parseInt(endMin)).diffHours(global.time)
+                    length: new Time(parseInt(endHr), parseInt(endMin)).diffHours(getCurrentTime())
                 }
             })
         })

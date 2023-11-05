@@ -48,6 +48,21 @@ function parseTime(timeString) {
     return new Time(hours, minutes)
 }
 
+function getCurrentTime() {
+    const now = new Date();
+
+    let mins = now.getMinutes()
+    let secs = now.getSeconds();
+
+
+    mins = (mins + 30) % 30
+    if (mins > 24) {
+        return new Time(24, 0)
+    }
+
+    return new Time(mins, secs)
+}
+
 async function persistReservationHistory(prisma, userId, parkingSpotId, endTime, occupied) {
     return prisma.reservationHistory.create({
         data: {
@@ -66,5 +81,6 @@ module.exports = {
     sendReservationRequest,
     Time,
     parseTime,
-    persistReservationHistory
+    persistReservationHistory,
+    getCurrentTime
 }
