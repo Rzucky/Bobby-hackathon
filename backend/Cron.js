@@ -121,6 +121,8 @@ class Cron {
         await this.calculateUserStats()
 
         await this.adjustPrices()
+        await this.calcSpots()
+
 
         // Reschedule the function after 5 seconds
         setTimeout(() => this.calculateStats(), 5000);
@@ -171,17 +173,23 @@ class Cron {
                     parkingSpot: true,
                 }
             });
-        
+            const debts = await prisma.debt.findMany()             
+            
             // Process the results to calculate stats
             const userStats = reservations.reduce((acc, reservation) => {
-
+                
                 const { userId, parkingSpot } = reservation;
-                acc[userId] = acc[userId] || { zones: {}, totalReservations: 0 };
+                acc[userId] = acc[userId] || { zones: {}, totalReservations: 0, debt: 0 };
                 acc[userId].zones[parkingSpot.parkingSpotZone] = acc[userId].zones[parkingSpot.parkingSpotZone] || 0;
-
+                
                 acc[userId].zones[parkingSpot.parkingSpotZone] += 1;
                 acc[userId].totalReservations += 1;
-                   
+
+                for(const debt of Object.values(debts)) {
+                    if(debt.userId == userId) {
+                        acc[userId].debt += debt.amount;
+                    }
+                }
                 return acc;
             }, {});
             
@@ -199,9 +207,9 @@ class Cron {
 
             global.userStats = userStats;
         
-            } catch (error) {
-                console.error(error);
-            }
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     adjustPrices() {
@@ -228,6 +236,20 @@ class Cron {
             i++;
         }
         console.log('STATS AFTER ADJUST:', global.zoneStats)
+    }
+
+
+    async calcSpots() {
+        const history = await prisma.reservationHistory.findMany()   
+        const spotStats = history.reduce((acc, reservation) => {
+            const {parkingSpotId } = reservation;
+            acc[parkingSpotId] = acc[parkingSpotId] || { totalReservations: 0 };
+            acc[parkingSpotId].totalReservations += 1;
+
+            return acc;
+        }, {});
+
+        global.spotStats = spotStats;
     }
 
     // startBackup() {

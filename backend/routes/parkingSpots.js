@@ -10,6 +10,7 @@ const ac = new AccessControl();
 ac.grant('user')
   .create('reservation')
   .readOwn('profile')
+  .delete('reservation')
   .readOwn('reservation')
   .updateOwn('profile');
 
@@ -39,39 +40,39 @@ router.get("/:id", (req, res) => {
     res.send(global.parkingSpots[id])
 })
 
-router.post("/reserve/:id", (req, res) => {
-    const id = req.params.id;
-    const endH = req.body.endH;
-    const endM = req.body.endM;
+// router.post("/reserve/:id", (req, res) => {
+//     const id = req.params.id;
+//     const endH = req.body.endH;
+//     const endM = req.body.endM;
 
-    if (endH === undefined || endM === undefined) {
-        res.status(400).send({message: 'Invalid request, missing parameters endH or endM.'});
-        return;
-    }
+//     if (endH === undefined || endM === undefined) {
+//         res.status(400).send({message: 'Invalid request, missing parameters endH or endM.'});
+//         return;
+//     }
 
-    const { role } = req.user;
-    if (ac.can(role).create('reservation').granted) {
-        fetch(global.config.PARKING_API + "/api/ParkingSpot/reserve", {
-            method: 'POST', headers: {
-                'accept': '*/*', 'Api-Key': process.env.API_KEY, 'Content-Type': 'application/json'
-            }, body: {
-                id, endH, endM
-            }
-        })
-            .then(response => response.json()
-            )
-            .then(response => {
-                console.log(response);
-                if (!response.ok) {
-                    res.status(400).send({message: response.statusText});
-                    return
-                }
-                console.log(response);
-                global.parkingSpots[id].occupied = true;
-                res.send(global.parkingSpots[id])
-            })
-    }
-})
+//     const { role } = req.user;
+//     if (ac.can(role).create('reservation').granted) {
+//         fetch(global.config.PARKING_API + "/api/ParkingSpot/reserve", {
+//             method: 'POST', headers: {
+//                 'accept': '*/*', 'Api-Key': process.env.API_KEY, 'Content-Type': 'application/json'
+//             }, body: {
+//                 id, endH, endM
+//             }
+//         })
+//             .then(response => response.json()
+//             )
+//             .then(response => {
+//                 console.log(response);
+//                 if (!response.ok) {
+//                     res.status(400).send({message: response.statusText});
+//                     return
+//                 }
+//                 console.log(response);
+//                 global.parkingSpots[id].occupied = true;
+//                 res.send(global.parkingSpots[id])
+//             })
+//     }
+// })
 
 router.post("/create", async (req, res) => {
     const {latitude, longitude, parkingSpotZone} = req.body;

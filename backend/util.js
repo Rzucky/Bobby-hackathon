@@ -125,7 +125,7 @@ function calculateTimeDifferenceWithPrice(times) {
       
       const timeDifference = findTimeDifference(times);
       console.log(`Time difference: ${timeDifference.hours} hours and ${timeDifference.minutes} minutes for price: ${timeDifference.price}`);
-
+      return timeDifference
 }
 
 module.exports = {
