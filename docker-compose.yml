@@ -25,16 +25,16 @@ services:
   #   ports:
   #     - "5555:8080"
 
-  # bobby-frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   image: bobby-frontend:1.0.0
-  #   container_name: bobby-frontend
-  #   depends_on:
-  #     - bobby-backend
-  #   ports:
-  # - "5560:3000"
+  bobby-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: bobby-frontend:1.0.0
+    container_name: bobby-frontend
+    # depends_on:
+    #   - bobby-backend
+    ports:
+      - "5560:3000"
 
 volumes:
   bobby-db-data:
