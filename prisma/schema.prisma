@@ -85,4 +85,5 @@ enum SpotTypes {
   Regular
   Handicapped
   ECharging
+  Family
 }
