@@ -11,13 +11,11 @@ import { getUser } from '../App/Auth/auth'
 export default function Profile() {
   const navigate = useNavigate()
 
-  const user = getUser() || {
-    email: 'johndoe@gmail.com',
-    name: 'John doe',
-    id: 123,
-    licencePlate: 'ZG1234AH',
-    type: 1,
-    password: 'asd',
+  const user = getUser()
+
+  if (!user) {
+    navigate('/')
+    return null
   }
 
   return (
@@ -50,55 +48,10 @@ export default function Profile() {
           </Flex>
         </Flex>
 
-        <Flex alignItems="center">
+        {/* <Flex alignItems="center">
           <Divider flex={1} />
           <h2>History</h2>
           <Divider flex={1} />
-        </Flex>
-
-        {/* <Flex flexDirection="column" marginBottom="156px">
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
-          <p>Lorem ipsum dolor sit.</p>
         </Flex> */}
       </Flex>
 
