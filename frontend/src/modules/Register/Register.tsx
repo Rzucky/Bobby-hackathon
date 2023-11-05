@@ -4,6 +4,8 @@ import { Formik, useFormikContext } from 'formik'
 import Button from '../../components/Button'
 import { INITIAL_VALUES, registrationValidator } from './const'
 import { Subtitle } from './styles'
+import { postRegistration } from './api'
+import { useNavigate } from 'react-router'
 
 function Register() {
   const { values, setFieldValue, submitForm, errors } = useFormikContext<typeof INITIAL_VALUES>()
@@ -90,10 +92,22 @@ function Register() {
   )
 }
 
-// TODO: Handle registration
 function RegistrationWrapper() {
+  const navigate = useNavigate()
+
   return (
-    <Formik initialValues={INITIAL_VALUES} onSubmit={console.log} validationSchema={registrationValidator}>
+    <Formik
+      initialValues={INITIAL_VALUES}
+      onSubmit={values => {
+        postRegistration({ licencePlate: values.license, ...values })
+          .then(() => {
+            alert('success')
+            navigate('/login')
+          })
+          .catch(() => alert('error'))
+      }}
+      validationSchema={registrationValidator}
+    >
       <Register />
     </Formik>
   )

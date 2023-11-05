@@ -4,15 +4,25 @@ import NavigationDrawer from './NavigationDrawer'
 import { useState } from 'react'
 import SpotDrawer from './SpotDrawer'
 import { MapFiltersContextProvider, useMapFilterContext } from './context'
+import { Coords } from '../../model/Coords'
+import { getUser } from '../App/Auth/auth'
 
 const Container = styled(Flex)`
   background-color: ${p => p.theme.accent};
 `
 
 function Home() {
-  const [selectedSpot, setSelectedSport] = useState(false)
+  const [selectedSpot, setSelectedSpot] = useState<Coords>()
+
+  const token = getUser()
 
   const { electricCharging, handicapped } = useMapFilterContext()
+
+  const handleReservation = (coords: Coords) => {
+    if (!token) return
+
+    setSelectedSpot(coords)
+  }
 
   return (
     <Container height="100%" textAlign="center">

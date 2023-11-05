@@ -1,42 +1,17 @@
 import Flex from '../../components/Flex'
 import DefaultProfile from '../../assets/user.png'
-import styled from 'styled-components'
-import Box from '../../components/Box'
-import { User } from '../../model/User'
 import Drawer from '../../components/Drawer'
 import { BackIcon } from '../../Icons'
 import { CircleButton } from '../../components/Button'
 import { useNavigate } from 'react-router'
 import Divider from '../../components/Divider'
-
-const Container = styled(Flex)`
-  background-color: ${p => p.theme.lightPrimary};
-  height: 100%;
-`
-
-const ImageWrapper = styled(Box)`
-  background-color: #fff;
-  border-radius: 50%;
-  padding: 16px;
-
-  width: 64px;
-  height: 64px;
-
-  filter: drop-shadow(0 0 0.75rem #bbbbbb88);
-`
-
-const MainContent = styled(Flex)`
-  background-color: ${p => p.theme.darkPrimary};
-`
-
-const UserTitle = styled.h1`
-  color: ${p => p.theme.lightPrimary};
-`
+import { Container, ImageWrapper, MainContent, UserTitle } from './style'
+import { getUser } from '../App/Auth/auth'
 
 export default function Profile() {
   const navigate = useNavigate()
 
-  const user: User = {
+  const user = getUser() || {
     email: 'johndoe@gmail.com',
     name: 'John doe',
     id: 123,
@@ -81,7 +56,7 @@ export default function Profile() {
           <Divider flex={1} />
         </Flex>
 
-        <Flex flexDirection="column" marginBottom="156px">
+        {/* <Flex flexDirection="column" marginBottom="156px">
           <p>Lorem ipsum dolor sit.</p>
           <p>Lorem ipsum dolor sit.</p>
           <p>Lorem ipsum dolor sit.</p>
@@ -124,7 +99,7 @@ export default function Profile() {
           <p>Lorem ipsum dolor sit.</p>
           <p>Lorem ipsum dolor sit.</p>
           <p>Lorem ipsum dolor sit.</p>
-        </Flex>
+        </Flex> */}
       </Flex>
 
       <Drawer initialHeight={100} disabled>

@@ -4,13 +4,18 @@ import Input from '../../components/Input'
 import { Subtitle } from '../Register/styles'
 import Button from '../../components/Button'
 import Link from '../../components/Link'
+import { postLogin } from './api'
+import { setUser } from '../App/Auth/auth'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const handleLogin = () => {
-    // TODO: handle login
+    postLogin({ email, password }).then(res => {
+      alert('success')
+      setUser(res)
+    })
   }
 
   return (
