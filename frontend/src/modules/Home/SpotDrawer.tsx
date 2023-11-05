@@ -59,7 +59,7 @@ export default function SpotDrawer() {
       .then(res => {
         console.log('success', res)
         setSelectedMarker(undefined)
-        setReservation({ h: +hours, m: +minutes })
+        setReservation({ h: +hours, m: +minutes, spotId: selectedMarker.id })
       })
       .catch(e => console.log('err', e))
   }

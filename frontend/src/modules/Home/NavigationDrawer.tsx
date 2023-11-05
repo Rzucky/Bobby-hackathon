@@ -8,6 +8,7 @@ import Toggle from '../../components/Toggle'
 import Divider from '../../components/Divider'
 import { useMapFilterContext } from './context'
 import { useMapMarkerContext } from '../Map/context'
+import { finishReservation } from './api'
 
 export default function NavigationDrawer() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -38,6 +39,14 @@ export default function NavigationDrawer() {
   }
 
   const handleProfile = () => navigation('/profile')
+
+  const handlePayment = () => {
+    if (!reservation) return
+
+    finishReservation({ parkingSpotId: reservation.spotId })
+      .then(() => window.location.reload())
+      .catch(e => console.log(e))
+  }
 
   return (
     <Drawer initialHeight={reservation ? 132 : 100} isOpen={isDrawerOpen} setIsOpen={() => {}}>
@@ -91,7 +100,7 @@ export default function NavigationDrawer() {
 
           {reservation ? (
             <Flex flex={1} flexDirection="column" alignItems="center">
-              <CircleButton isActive={showFilters} width={48} height={48} marginBottom="4px" onClick={handleFilters}>
+              <CircleButton isActive={showFilters} width={48} height={48} marginBottom="4px" onClick={handlePayment}>
                 <WalletIcon />
               </CircleButton>
               <p>Pay for parking</p>

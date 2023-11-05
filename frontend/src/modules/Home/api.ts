@@ -16,3 +16,19 @@ export const postReservation = (data: { userId: number; parkingSpotId: string; e
 
     return res.json().then(r => Promise.resolve(r))
   })
+
+export const finishReservation = (data: { parkingSpotId: string }) =>
+  fetch(`${API_URL}/reservations`, {
+    body: JSON.stringify(data),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      authorization: getToken() || '',
+    },
+  }).then(res => {
+    if (res.status > 299) {
+      return res.json().then(r => Promise.reject(r.message as string))
+    }
+
+    return res.json().then(r => Promise.resolve(r))
+  })

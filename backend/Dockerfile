@@ -7,4 +7,4 @@ COPY . .
 
 RUN npm install
 
-CMD ["node", "index.js"]
+CMD ["node", "backend/index.js"]

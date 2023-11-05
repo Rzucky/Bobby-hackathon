@@ -16,9 +16,9 @@ services:
 
   bobby-backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    image: bobby-backend:1.0.0
+      context: ./
+      dockerfile: ./backend/Dockerfile
+    image: bobby-backend:1.0.1
     container_name: bobby-backend
     depends_on:
       - bobby-db
@@ -26,13 +26,17 @@ services:
       - "5555:3000"
 
   bobby-frontend:
+    environment:
+      - REACT_APP_MAPS_API_KEY=${REACT_APP_MAPS_API_KEY}
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - PORT=${PORT}
     build:
       context: ./frontend
       dockerfile: Dockerfile
     image: bobby-frontend:1.0.0
     container_name: bobby-frontend
-    # depends_on:
-    #   - bobby-backend
+    depends_on:
+      - bobby-backend
     ports:
       - "5560:3000"
 

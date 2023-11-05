@@ -8,8 +8,8 @@ interface IContext {
   setSelectedMarker: React.Dispatch<Spot | undefined>
   spots?: Record<string, Spot>
   setSpots: React.Dispatch<Record<string, Spot> | undefined>
-  reservation?: { h: number; m: number }
-  setReservation: (obj: { h: number; m: number }) => void
+  reservation?: { h: number; m: number; spotId: string }
+  setReservation: (obj: { h: number; m: number; spotId: string }) => void
 }
 
 const MapMarkerContext = createContext<IContext>(undefined!)
@@ -17,7 +17,7 @@ const MapMarkerContext = createContext<IContext>(undefined!)
 export const MapMarkerContextProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const [selectedMarker, setSelectedMarker] = useState<Spot>()
   const [spots, setSpots] = useState<Record<string, Spot>>()
-  const [reservation, setReservation] = useState<{ h: number; m: number }>()
+  const [reservation, setReservation] = useState<{ h: number; m: number; spotId: string }>()
 
   useEffect(() => {
     getParkingSpots()
