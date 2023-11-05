@@ -1,0 +1,7 @@
+export { default as LocationIcon } from './Location'
+export { default as MoreIcon } from './More'
+export { default as TowTruckIcon } from './TowTruck'
+export { default as BackIcon } from './Back'
+export { default as EditIcon } from './Edit'
+export { default as ProfileIcon } from './Profile'
+export { default as FilterIcon } from './Filter'
