@@ -35,10 +35,11 @@ model Spot {
 }
 
 model Alert {
-  id            Int    @id @default(autoincrement())
-  message       String
-  parkingSpotId String
-  licensePlate  String
+  id           Int    @id @default(autoincrement())
+  message      String
+  latitude     String
+  longitude    String
+  licensePlate String
 }
 
 model Reservation {

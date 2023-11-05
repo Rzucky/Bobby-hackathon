@@ -3,12 +3,12 @@ const {PrismaClient} = require("@prisma/client");
 const router = express.Router();
 const prisma = new PrismaClient()
 router.post("/", (req, res) => {
-    let {licensePlate, parkingSpotId, message} = req.body
+    let {licensePlate, latitude, longitude, message} = req.body
 
     prisma.alert.create({
         data: {
-            licensePlate,
-            parkingSpotId,
+            latitude,
+            longitude,
             message
         }
     }).then(alert => {
