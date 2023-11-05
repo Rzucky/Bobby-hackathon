@@ -22,8 +22,6 @@ class EventHub {
 
         this.startSubscription(consumerClient);
 
-        this.startIOServer();
-
     }
     
     waitForVariable() {
@@ -157,7 +155,7 @@ class EventHub {
                             create: data_object,
                         })
 
-                        this.io.emit('ps', data_object);
+                        global.io.emit('ps', data_object);
                     }
         
                     await context.updateCheckpoint(events[events.length - 1]);
@@ -170,21 +168,6 @@ class EventHub {
             {startPosition: latestEventPosition}
         ); 
         console.log("subscription setup done", subscription.isRunning);
-    }
-    
- 
-    startIOServer() {
-        const server = createServer(global.app);
-        const io = new Server(server, {
-            cors: {
-                origin: '*',
-            }
-        });
-        this.io = io
-        
-        io.on('connection', (socket) => {
-            console.log('a user connected');
-        });
     }
 }
 

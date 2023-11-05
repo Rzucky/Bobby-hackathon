@@ -16,10 +16,24 @@ const authenticationRoutes = require('./authentication');
 const parkingSpotsRoutes = require('./parkingSpots');
 const alertsRoutes = require('./alerts');
 const reservationsRoutes = require('./reservations');
+const {Server} = require("socket.io");
 
 class Routing {
     constructor() {
         const app = express();
+        const server = require('http').createServer(app);
+        const io = new Server(server, {
+            cors: {
+                origin: '*',
+            }
+        });
+
+        server.listen(3000)
+        io.on('connection', socket => {
+            console.log("Connected", socket)
+        });
+
+        global.io = io;
 
         app.use(expressCspHeader({
             policies: {
@@ -30,11 +44,9 @@ class Routing {
         app.use(cors());
         app.use(bodyParser.urlencoded({ extended: false }))
         app.use(bodyParser.json())
-        const server = createServer(app);
-        
+
         this.app = app
         global.app = app
-
         // server.listen(3000, () => {
         //     console.log('server running at http://localhost:3000');
         // });
