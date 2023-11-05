@@ -14,16 +14,16 @@ services:
     volumes:
       - bobby-db-data:/var/lib/postgresql/data
 
-  # bobby-backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   image: bobby-backend:1.0.0
-  #   container_name: bobby-backend
-  #   depends_on:
-  #     - bobby-db
-  #   ports:
-  #     - "5555:8080"
+  bobby-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: bobby-backend:1.0.0
+    container_name: bobby-backend
+    depends_on:
+      - bobby-db
+    ports:
+      - "5555:3000"
 
   bobby-frontend:
     build:
