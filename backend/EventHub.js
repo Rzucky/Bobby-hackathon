@@ -141,7 +141,7 @@ class EventHub {
                             latitude: String(global.parkingSpots[event.body.Id].latitude),
                             longitude: String(global.parkingSpots[event.body.Id].longitude),
                             occupied: event.body.IsOccupied ?? false,
-                            occupiedTimestamp: ISOformat,
+                            occupiedTimestamp: String(ISOformat),
                             difficult: Math.random() < 0.2,
                             type,
                             parkingSpotZone: global.parkingSpots[event.body.Id].parkingSpotZone,

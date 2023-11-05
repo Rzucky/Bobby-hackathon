@@ -33,7 +33,25 @@ class Cron {
             let spotsAccumulator = {};
   
             for (const spot of parkingSpots.data) {
-              spotsAccumulator[spot.id] = spot;
+                let difficult = Math.random() < 0.2;
+                let type_chance = Math.random();
+                let type = 'Regular'; // Default type
+            
+                if (type_chance < 0.1) {
+                  type = "Handicapped";
+                } else if (type_chance < 0.2) {
+                  type = "ECharging";
+                }
+                else if (type_chance < 0.3) {
+                  type = "Family";
+                }
+
+                spot.latitude = String(spot.latitude)
+                spot.longitude = String(spot.longitude)
+                
+                spot.difficult = difficult;
+                spot.type = type;
+                spotsAccumulator[spot.id] = spot;
             }
             
             global.parkingSpots = spotsAccumulator;
@@ -58,46 +76,37 @@ class Cron {
 
     async insertCache() {
         await this.waitForVariable()
+        console.log(typeof global.parkingSpots);
+        try {
+            await prisma.spot.deleteMany({});
+            await prisma.spot.createMany({
+    
+              data: Object.values(global.parkingSpots)
+            });            
+        } catch (error) {
+            console.error(`Failed with error`, error);
+        }
 
-        for(const spot_id in global.parkingSpots) {
-              const spot = global.parkingSpots[spot_id]
+        //       try {
+        //         const upsertSpot = await prisma.spot.upsert({
+        //           where: { id: spot.id },
+        //           update: { occupied: spot.occupied },
+        //           create: {
+        //             id: uuid.v4(),
+        //             latitude: String(spot.latitude),
+        //             longitude: String(spot.longitude),
+        //             occupied: spot.occupied,
+        //             occupiedTimestamp: ISOformat,
+        //             difficult,
+        //             type,
+        //             parkingSpotZone: spot.parkingSpotZone,
+        //           },
+        //         });
 
-              let difficult = Math.random() < 0.2;
-              let type_chance = Math.random();
-              let type = 'Regular'; // Default type
-          
-              if (type_chance < 0.1) {
-                type = "Handicapped";
-              } else if (type_chance < 0.2) {
-                type = "ECharging";
-              }
-              else if (type_chance < 0.3) {
-                type = "Family";
-              }
-          
-              let now = new Date();
-              let ISOformat = now.toISOString();
-          
-              try {
-                const upsertSpot = await prisma.spot.upsert({
-                  where: { id: spot.id },
-                  update: { occupied: spot.occupied },
-                  create: {
-                    id: uuid.v4(),
-                    latitude: String(spot.latitude),
-                    longitude: String(spot.longitude),
-                    occupied: spot.occupied,
-                    occupiedTimestamp: ISOformat,
-                    difficult,
-                    type,
-                    parkingSpotZone: spot.parkingSpotZone,
-                  },
-                });
-
-              } catch (error) {
-                console.error(`Failed to upsert spot with ID ${spot.id}:`, error);
-              }
-            }
+        //       } catch (error) {
+        //         console.error(`Failed to upsert spot with ID ${spot.id}:`, error);
+        //       }
+        //     }
             console.log('\n\n\n\n\n\n\nFINISHED\n\n\n\n\n\n\n\n')
     }
 
@@ -150,7 +159,7 @@ class Cron {
             };
         });
         
-        console.log(getCurrentTime().getTime() +  ': STATS:', global.stats)
+        // console.log(getCurrentTime().getTime() +  ': STATS:', results)
         global.zoneStats = results;
     }
 

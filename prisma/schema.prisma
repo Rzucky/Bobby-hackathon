@@ -47,7 +47,7 @@ model Spot {
   latitude          String
   longitude         String
   occupied          Boolean   @default(false)
-  occupiedTimestamp DateTime?
+  occupiedTimestamp String?
   reserved_user_id  Int?
   difficult         Boolean   @default(false)
   type              SpotTypes @default(Regular)
