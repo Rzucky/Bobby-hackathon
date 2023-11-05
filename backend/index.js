@@ -33,6 +33,7 @@ const subscription = consumerClient.subscribe({
             - at end of processEvents, you need to update the checkpoint/offset to the latest event (to prevent processing past events).
          */
         processEvents: async (events, context) => {
+            return;
             console.log(`Received events: ${events.length}`);
 
             if (events.length === 0) {
