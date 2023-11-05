@@ -84,18 +84,22 @@ router.get("/:email", async (req, res) => {
                     email
                 }
             })
-            if (!user) {
-                return res.status(400).send({message: 'No reservations'});
+            if ((!user || user.email != req.user.email) && req.user.role != 'admin')
+            {
+                return res.status(400).send({message: "User doesn't exist"});
             }
             const reservation = await prisma.reservation.findFirst({
                 where: {
                     userId: user.id
                 }
             })
-            if (!reservation) {
-                return res.status(400).send({message: 'No reservations'});
+
+            let userStats = { 
+                stats: global.userStats[user.id] ?? 'No stats', 
+                reservation: reservation ?? 'No reservation'
             }
-            return res.status(200).send(reservation)
+
+            return res.status(200).send({error: false, data: userStats })
         } catch (error) {
             console.log(error)
             return res.status(500).send({message: 'Internal error'});
