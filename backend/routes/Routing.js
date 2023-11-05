@@ -63,9 +63,9 @@ class Routing {
 
         this.app.use(express.json());
         this.app.use('/api/auth', authenticationRoutes);
-        this.app.use('/api/parkingSpots',this.authMiddleware,parkingSpotsRoutes);
+        this.app.use('/api/parkingSpots',this.authMiddleware, parkingSpotsRoutes)
         this.app.use('/api/alerts',this.authMiddleware,alertsRoutes)
-        this.app.use('/api/reservations',this.authMiddleware, reservationsRoutes);
+        this.app.use('/api/reservations', this.authMiddleware, reservationsRoutes);
         // this.app.use('/test', this.authMiddleware, this.test);
         // this.app.post('/create_spot', this.authMiddleware, this.createSpot);
         // this.app.delete('/delete_spot', this.authMiddleware, this.deleteSpot);

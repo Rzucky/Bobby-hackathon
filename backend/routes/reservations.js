@@ -8,14 +8,8 @@ const prisma = new PrismaClient()
 router.post("/", async (req, res) => {
     const {userId, parkingSpotId, endHr, endMin} = req.body;
 
-    let user = await prisma.user.findFirst({
-        where: {
-            id: userId
-        }
-    })
-
-    const {type} = user;
-    if (ac.can(type).create('reservation').granted) {
+    const {role} = req.user;
+    if (ac.can(role).create('reservation').granted) {
         if (!(parkingSpotId in global.parkingSpots)) {
             res.status(400).send({message: "Parking spot doesn't exist."})
             return;
