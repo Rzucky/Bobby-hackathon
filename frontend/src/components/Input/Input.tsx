@@ -19,6 +19,8 @@ export default function Input({
     type?: React.HTMLInputTypeAttribute
     value?: string
     onChange?: (value: string) => void
+    min?: number
+    max?: number
   }) {
   return <StyledInput onChange={e => onChange(e.target.value)} {...props} style={props} />
 }

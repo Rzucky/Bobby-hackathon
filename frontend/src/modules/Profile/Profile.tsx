@@ -7,6 +7,7 @@ import Drawer from '../../components/Drawer'
 import { BackIcon } from '../../Icons'
 import { CircleButton } from '../../components/Button'
 import { useNavigate } from 'react-router'
+import Divider from '../../components/Divider'
 
 const Container = styled(Flex)`
   background-color: ${p => p.theme.lightPrimary};
@@ -30,10 +31,6 @@ const MainContent = styled(Flex)`
 
 const UserTitle = styled.h1`
   color: ${p => p.theme.lightPrimary};
-`
-
-const Divider = styled(Box)`
-  border-bottom: 1px solid ${p => p.theme.accent};
 `
 
 export default function Profile() {
