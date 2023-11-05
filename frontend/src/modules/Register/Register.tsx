@@ -101,7 +101,7 @@ function RegistrationWrapper() {
       onSubmit={values => {
         postRegistration({ licencePlate: values.license, ...values })
           .then(() => navigate('/login'))
-          .catch(() => alert('error'))
+          .catch(() => console.log('error'))
       }}
       validationSchema={registrationValidator}
     >

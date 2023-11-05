@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router'
-import { FilterIcon, LocationIcon, MoreIcon, ProfileIcon, TowTruckIcon } from '../../Icons'
+import { FilterIcon, LocationIcon, MoreIcon, ProfileIcon, TowTruckIcon, WalletIcon } from '../../Icons'
 import { CircleButton } from '../../components/Button'
 import Drawer from '../../components/Drawer'
 import Flex from '../../components/Flex'
@@ -7,11 +7,13 @@ import { useState } from 'react'
 import Toggle from '../../components/Toggle'
 import Divider from '../../components/Divider'
 import { useMapFilterContext } from './context'
+import { useMapMarkerContext } from '../Map/context'
 
 export default function NavigationDrawer() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
+  const { reservation } = useMapMarkerContext()
   const { electricCharging, handicapped, setElectricCharging, setHandicapped } = useMapFilterContext()
 
   const handleTowTruck = () => {
@@ -38,8 +40,15 @@ export default function NavigationDrawer() {
   const handleProfile = () => navigation('/profile')
 
   return (
-    <Drawer initialHeight={100} isOpen={isDrawerOpen} setIsOpen={() => {}}>
+    <Drawer initialHeight={reservation ? 132 : 100} isOpen={isDrawerOpen} setIsOpen={() => {}}>
       <Flex flexDirection="column" width="100%">
+        {reservation && (
+          <Flex width="100%" textAlign="center">
+            <h3 style={{ marginBottom: '8px' }}>
+              Your parking reservation ends at {`0${reservation.h}`.slice(-2)}:{`0${reservation.m}`.slice(-2)}
+            </h3>
+          </Flex>
+        )}
         <Flex width="100%" marginBottom="16px">
           <Flex flex={1} flexDirection="column" alignItems="center">
             <CircleButton width={48} height={48} marginBottom="4px" onClick={handleTowTruck}>
@@ -80,7 +89,16 @@ export default function NavigationDrawer() {
             <p>Filters</p>
           </Flex>
 
-          <Flex flex={1} />
+          {reservation ? (
+            <Flex flex={1} flexDirection="column" alignItems="center">
+              <CircleButton isActive={showFilters} width={48} height={48} marginBottom="4px" onClick={handleFilters}>
+                <WalletIcon />
+              </CircleButton>
+              <p>Pay for parking</p>
+            </Flex>
+          ) : (
+            <Flex flex={1} />
+          )}
         </Flex>
 
         {showFilters && (

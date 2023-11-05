@@ -8,6 +8,8 @@ interface IContext {
   setSelectedMarker: React.Dispatch<Spot | undefined>
   spots?: Record<string, Spot>
   setSpots: React.Dispatch<Record<string, Spot> | undefined>
+  reservation?: { h: number; m: number }
+  setReservation: (obj: { h: number; m: number }) => void
 }
 
 const MapMarkerContext = createContext<IContext>(undefined!)
@@ -15,6 +17,7 @@ const MapMarkerContext = createContext<IContext>(undefined!)
 export const MapMarkerContextProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const [selectedMarker, setSelectedMarker] = useState<Spot>()
   const [spots, setSpots] = useState<Record<string, Spot>>()
+  const [reservation, setReservation] = useState<{ h: number; m: number }>()
 
   useEffect(() => {
     getParkingSpots()
@@ -22,10 +25,16 @@ export const MapMarkerContextProvider = ({ children }: React.PropsWithChildren<{
         console.log('loaded', spots)
         setSpots(spots)
       })
-      .catch(e => alert(e))
+      .catch(e => console.log(e))
 
     socket.on('ps', function (data: Spot) {
-      console.log('OMG SOCKET SOCK MY BALLS', data)
+      setSpots(_spots => {
+        if (!_spots) return
+
+        _spots[data.id] = data
+
+        return _spots
+      })
     })
 
     return () => {
@@ -34,7 +43,9 @@ export const MapMarkerContextProvider = ({ children }: React.PropsWithChildren<{
   }, [])
 
   return (
-    <MapMarkerContext.Provider value={{ selectedMarker, setSelectedMarker, spots, setSpots }}>
+    <MapMarkerContext.Provider
+      value={{ selectedMarker, setSelectedMarker, spots, setSpots, reservation, setReservation }}
+    >
       {children}
     </MapMarkerContext.Provider>
   )

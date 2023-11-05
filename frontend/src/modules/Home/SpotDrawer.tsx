@@ -21,7 +21,7 @@ const Tag = styled(Box)`
 `
 
 export default function SpotDrawer() {
-  const { selectedMarker } = useMapMarkerContext()
+  const { selectedMarker, setSelectedMarker, setReservation } = useMapMarkerContext()
   const now = new Date()
 
   const nowHours = `0${now.getHours()}`.slice(-2)
@@ -56,7 +56,11 @@ export default function SpotDrawer() {
     if (!user) return
 
     postReservation({ userId: user.id, parkingSpotId: selectedMarker.id, endHr: +hours, endMin: +minutes })
-      .then(res => console.log('success', res))
+      .then(res => {
+        console.log('success', res)
+        setSelectedMarker(undefined)
+        setReservation({ h: +hours, m: +minutes })
+      })
       .catch(e => console.log('err', e))
   }
 

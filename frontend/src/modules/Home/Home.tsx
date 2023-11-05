@@ -11,14 +11,12 @@ const Container = styled(Flex)`
 `
 
 function Home() {
-  const { selectedMarker } = useMapMarkerContext()
+  const { selectedMarker, reservation } = useMapMarkerContext()
   const { electricCharging, handicapped } = useMapFilterContext()
 
   return (
     <Container height="100%" textAlign="center">
       <Map />
-      {/* {electricCharging ? 'y' : 'n'}
-      {handicapped ? 'y' : 'n'} */}
 
       {!!selectedMarker ? <SpotDrawer /> : <NavigationDrawer />}
     </Container>

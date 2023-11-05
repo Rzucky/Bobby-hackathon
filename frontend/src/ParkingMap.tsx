@@ -14,14 +14,15 @@ const mapContainerStyle = {
 const mapCenter = {
   // lat: 7.2905715, // default latitude
   // lng: 80.6337262, // default longitude
-  lat: 45.807886572584735,
+  lat: 45.807886572584736,
   lng: 16.00218318614229,
 }
+
+const mapZoom = 15
+
 function ParkingMap() {
   const { selectedMarker, setSelectedMarker, spots: markerList } = useMapMarkerContext()
-  const mapZoom = 15
 
-  // const [map, setMap] = useState<google.maps.Map>()
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [dirResult, setDirResult] = useState<google.maps.DirectionsResult | null>(null)
 
@@ -96,6 +97,8 @@ function ParkingMap() {
       const btn: HTMLButtonElement = document.createElement('button')
       btn.textContent = 'Get location'
       btn.classList.add('custom-map-control-button')
+      btn.style.opacity = '0%'
+      btn.id = 'btn-closest'
       btn.onclick = () => {
         const buildDistances = () => {
           if (!markerList) return
@@ -174,20 +177,24 @@ function ParkingMap() {
 
   // @ts-ignore
   const directionsServiceOptions = useMemo<google.maps.DirectionsRequest>(() => {
+    if (!selectedMarker) return {}
+
     return {
       origin: directionsFormValue.origin,
       destination: directionsFormValue.dest,
       travelMode: 'DRIVING',
       region: 'hr',
     }
-  }, [directionsFormValue])
+  }, [directionsFormValue, selectedMarker])
 
   const directionsResult = useMemo(() => {
+    if (!selectedMarker) return {}
+
     return {
       directions: dirResult,
       suppressMarkers: true,
     }
-  }, [dirResult])
+  }, [dirResult, selectedMarker])
 
   if (loadError) {
     return <div> Error loading maps </div>
@@ -256,7 +263,7 @@ function ParkingMap() {
                           lng: +selectedMarker.longitude,
                         }
                       : undefined
-                  )
+                  ) || !markerList[id].occupied
                     ? 'pins/green_pin.png'
                     : 'pins/red_pin.png'
                 }
