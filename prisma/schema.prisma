@@ -62,6 +62,7 @@ model ReservationLength {
   userId        Int
   parkingSpotId String
   length        Int
+  time          String
 }
 
 enum UserType {

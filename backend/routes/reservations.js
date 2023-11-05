@@ -39,7 +39,8 @@ router.post("/", async (req, res) => {
                 data: {
                     userId,
                     parkingSpotId,
-                    length: new Time(parseInt(endHr), parseInt(endMin)).diffHours(getCurrentTime())
+                    length: new Time(parseInt(endHr), parseInt(endMin)).diffHours(getCurrentTime()),
+                    time: getCurrentTime().getTime()
                 }
             })
         })
